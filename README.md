@@ -1,2 +1,2 @@
-# golf
-golf
+# Golf
+A simple multiplayer golf game using socket.io
