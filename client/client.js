@@ -1,3 +1,5 @@
+var socket;
+
 var canvas = document.getElementById("Canvas");
 canvas.tabindex = 0;
 canvas.setAttribute('style', "padding-left: 0;padding-right: 0;margin-left: auto;margin-right: auto;display: block;width: 425;");
@@ -46,17 +48,17 @@ function server_connect(){
 	player.name = name;
 	players = []
 	
+	if (socket){
+		socket.disconnect();
+	}
 	socket = io.connect("http://localhost:23456");
-	
-	var form = document.getElementById("form"); // text box for joining server goes away once you join
-	form.remove();
-	
+
 	socket.on("playerJoin", function(playerJoining, serverPlayerList, serverMap){
 		console.log(playerJoining.name + " has joined the server")
 		players = serverPlayerList
 		
 		if (playerID == -1) {  // Handler for uninitialized player (client-side)
-			playerID = players.length - 1
+			playerID = playerJoining.id
 			cam_x = playerJoining.x
 			cam_y = playerJoining.y
 		}
@@ -64,31 +66,48 @@ function server_connect(){
 		map = serverMap
 	});
 	
+	socket.on("playerLeave", function(playerLeaving, serverPlayerList){
+	
+		if (playerLeaving < playerID) {
+			playerID--;
+		}
+		console.log(players[playerLeaving].name + " has left the server")
+		players = serverPlayerList
+	});
+	
 	socket.on("playerMove", function(playerMovingID, x, y){
 		players[playerMovingID].x = x
 		players[playerMovingID].y = y
 	});
 	
-	socket.emit("playerJoin", player)
+	socket.on("connect", function(){
+		var form = document.getElementById("form"); // text box for joining server goes away once you join
+		form.remove();
+		
+		player.socket = socket.id
+		socket.emit("playerJoinRequest", player)
+		
+	});
 }
 
 var update = function (modifier) {
 	//cameraX = players
 	
 	if (87 in keysDown) { // up
-		cam_y-=5;
+		cam_y-=4;
 	}
 	if (83 in keysDown) { // down
-		cam_y+=5;
+		cam_y+=4;
 	}
 	if (65 in keysDown) { // left 
-		cam_x-=5;
+		cam_x-=4;
 	}
 	if (68 in keysDown) { // right
-		cam_x+=5;
+		cam_x+=4	;
 	}
 	
-	cam_zoom += (0.001 * delta)
+	cam_zoom += (0.01 * delta)
+	cam_zoom = Math.max(1, cam_zoom)
 	delta = 0
 }
 
@@ -123,9 +142,23 @@ var render = function () {
 	ctx.fillText("You Hit The Ball Into The Hole",10,32); // title and player list
 	ctx.fillText("Players: ",10,64);
 	for (var i = 0; i < players.length; i++){
+		
+		if (i == playerID){
+			var seqond = new Date().getTime();
+			ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
+		}else{
+			ctx.fillStyle = "#000000"
+		}
 		ctx.fillText(players[i].name,10,96 + (i*32) );
+		
+		ctx.fillText(players[i].name, tra_x(players[i].x) , tra_y(players[i].y));
 	}
 	
+	if (socket){
+		if (!socket.connected){
+			ctx.fillText("Can't connect to server!", 200, 320)
+		}
+	}
 };
 // main loop
 var main = function () {
