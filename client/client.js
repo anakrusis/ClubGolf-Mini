@@ -1,11 +1,14 @@
 var socket;
 
+// Main canvas for rendering
 var canvas = document.getElementById("Canvas");
 canvas.tabindex = 0;
 canvas.setAttribute('style', "padding-left: 0;padding-right: 0;margin-left: auto;margin-right: auto;display: block;width: 425;");
-
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
+
+var mapCanvas = document.getElementById("MapCanvas");
+var mapCtx = mapCanvas.getContext("2d");
 
 var tileset = new Image();
 tileset.src = "tileset.png";
@@ -16,12 +19,21 @@ var keysDown = {};
 var delta = 0;
 var map;
 
+class Ball {
+	constructor(){
+		this.x = 0;
+		this.y = 0;
+		this.height = 0;
+	}
+}
+
 class Player {
 	constructor(){
 		this.name = "Player";
 		this.x = 0;
 		this.y = 0;
 		this.id = 0;
+		this.ball = new Ball();
 	}
 }
 players = [];
@@ -103,63 +115,20 @@ var update = function (modifier) {
 		cam_x-=4;
 	}
 	if (68 in keysDown) { // right
-		cam_x+=4	;
+		cam_x+=4;
+	}
+	if (100 in keysDown) { // numpad 4 
+		cam_dir-=0.1;
+	}
+	if (102 in keysDown) { // numpad 6
+		cam_dir+=0.1;
 	}
 	
-	cam_zoom += (0.01 * delta)
-	cam_zoom = Math.max(1, cam_zoom)
+	//cam_zoom += (0.01 * delta)
+	//cam_zoom = Math.max(1, cam_zoom)
 	delta = 0
 }
 
-var render = function () {
-
-	ctx.clearRect(0,0,canvas.width,canvas.height)
-	ctx.fillStyle = "#94D1D1"; // one blank color for the canvas
-	ctx.fillRect(0,0,canvas.width,canvas.height);
-	
-	if (map) { // map render (top-down for now, mode7 later)
-		data = map.layers[0].data
-		
-		for (var i = 0; i < data.length; i++){
-			tileVal = data[i] - 1
-		
-			sourcex = (tileVal % 16) * 8;
-			sourcey = Math.floor(tileVal / 16) * 8;
-			
-			destx = tra_x((i % map.width) * 8);
-			desty = tra_y(Math.floor(i / map.width) * 8);
-			
-			ctx.drawImage(tileset,sourcex,sourcey,8,8,destx,desty,8*cam_zoom,8*cam_zoom)
-		}	
-		
-	}
-	for (var i = 0; i < players.length; i++){ // players render
-		ctx.drawImage(texture_PLAYER, tra_x(players[i].x), tra_y(players[i].y),8*cam_zoom, 8*cam_zoom)
-	}
-	
-	ctx.font = "30px Arial Narrow";
-	ctx.fillStyle = "#000000";
-	ctx.fillText("You Hit The Ball Into The Hole",10,32); // title and player list
-	ctx.fillText("Players: ",10,64);
-	for (var i = 0; i < players.length; i++){
-		
-		if (i == playerID){
-			var seqond = new Date().getTime();
-			ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
-		}else{
-			ctx.fillStyle = "#000000"
-		}
-		ctx.fillText(players[i].name,10,96 + (i*32) );
-		
-		ctx.fillText(players[i].name, tra_x(players[i].x) , tra_y(players[i].y));
-	}
-	
-	if (socket){
-		if (!socket.connected){
-			ctx.fillText("Can't connect to server!", 200, 320)
-		}
-	}
-};
 // main loop
 var main = function () {
 	var now = Date.now();

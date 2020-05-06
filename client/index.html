@@ -6,14 +6,18 @@
 	</head>
 	<body>
 		<canvas id="Canvas" width="640" height="640" style="border:1px solid #000000;"></canvas>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-		<script src = "camera.js"></script>
-		<script src = "client.js"></script>
 		
 		<form id="form" action="javascript:server_connect()">
 			Name:<br>
 			<input type="text" id="name" name="name" value=""><br>
 			<input type="button" onclick="server_connect()" value="Connect">
 		</form> 
+		
+		<canvas id="MapCanvas" width="1024" height="1024" style="border:1px solid #000000;"></canvas>
+		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+		<script src = "camera.js"></script>
+		<script src = "render.js"></script>
+		<script src = "client.js"></script>
 	</body>
 </html>
