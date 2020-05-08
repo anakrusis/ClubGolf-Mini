@@ -9,6 +9,7 @@ ctx.imageSmoothingEnabled = false;
 
 var mapCanvas = document.getElementById("MapCanvas");
 var mapCtx = mapCanvas.getContext("2d");
+mapCtx.imageSmoothingEnabled = false;
 
 var tileset = new Image();
 tileset.src = "tileset.png";
@@ -106,26 +107,41 @@ var update = function (modifier) {
 	//cameraX = players
 	
 	if (87 in keysDown) { // up
-		cam_y-=4;
+		cam_y += 4 * Math.sin(cam_dir - Math.PI / 2);
+		cam_x -= 4 * Math.cos(cam_dir - Math.PI / 2);
 	}
 	if (83 in keysDown) { // down
-		cam_y+=4;
+		//cam_y += 4;
+		cam_y -= 4 * Math.sin(cam_dir - Math.PI / 2);
+		cam_x += 4 * Math.cos(cam_dir - Math.PI / 2);
 	}
 	if (65 in keysDown) { // left 
-		cam_x-=4;
+		//cam_x-=4;
+		cam_y -= 4 * Math.sin(cam_dir - Math.PI);
+		cam_x += 4 * Math.cos(cam_dir - Math.PI);
 	}
 	if (68 in keysDown) { // right
-		cam_x+=4;
+		//cam_x+=4;
+		cam_y += 4 * Math.sin(cam_dir - Math.PI);
+		cam_x -= 4 * Math.cos(cam_dir - Math.PI);
 	}
+	
 	if (100 in keysDown) { // numpad 4 
 		cam_dir-=0.1;
 	}
 	if (102 in keysDown) { // numpad 6
 		cam_dir+=0.1;
 	}
+	if (104 in keysDown){ // numpad 8
+		cam_zoom+=0.1
+	}
+	if (98 in keysDown){ // numpad 2
+		cam_zoom-=0.1
+	}
+	//cam_dir = Math.round(cam_dir * 10)/10
 	
 	//cam_zoom += (0.01 * delta)
-	//cam_zoom = Math.max(1, cam_zoom)
+	cam_zoom = Math.max(1, cam_zoom)
 	delta = 0
 }
 

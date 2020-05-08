@@ -1,15 +1,21 @@
 var render = function () {
 
+	// canvas clear and initial translation
 	ctx.clearRect(0,0,canvas.width,canvas.height)
-	ctx.fillStyle = "#94D1D1"; // one blank color for the canvas
+	ctx.fillStyle = "#220022";
 	ctx.fillRect(0,0,canvas.width,canvas.height);
 	
 	mapCtx.clearRect(0,0,mapCanvas.width,mapCanvas.height)
-	mapCtx.fillStyle = "#94D1D1"; // one blank color for the canvas
+	mapCtx.fillStyle = "#006600";
 	mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
 	
 	mapCtx.translate(320, 320);
 	mapCtx.rotate(cam_dir);
+	
+	// this is used to create a priority queue which is sorted from back to front
+	playerXs = [];
+	playerYs = [];
+	playerIDs = [];
 	
 	if (map) { // map render (top-down for now, mode7 later)
 		data = map.layers[0].data
@@ -27,32 +33,57 @@ var render = function () {
 		}	
 		
 	}
+	mapCtx.setTransform(1, 0, 0, 1, 0, 0);
 
-	ctx.drawImage(mapCanvas,0,0);
-	
-	mapCtx.rotate(-cam_dir);
-	mapCtx.translate(-320, -320);
-	
-	for (var i = 0; i < players.length; i++){ // players render
-		tx = tra_x(players[i].x) - 320;
+	for (var i = 0; i < players.length; i++){ // players pre-render (gathering positions)
+		tx = tra_x(players[i].x) - 320; // translated x/y
 		ty = tra_y(players[i].y) - 320;
-		rx = rot_x(cam_dir, tx, ty) + 320;
+		rx = rot_x(cam_dir, tx, ty) + 320; // rotated x/y
 		ry = rot_y(cam_dir, tx, ty) + 320;
+		mapCtx.drawImage(texture_PLAYER, rx, ry, 8*cam_zoom, 8*cam_zoom)
+	}
+	
+	var flat_factor = 16
+	var horizon_scanline = 128
+
+	for (i = 0; i < 640 * flat_factor; i+=flat_factor){
+	
+		scale = 1 + (i/640)
+		ctx.drawImage(mapCanvas, 0, i / scale, // source x y
 		
-		ctx.drawImage(texture_PLAYER, rx, ry, 8*cam_zoom, 8*cam_zoom)
+		640, 1, // source width height 
 		
-		if (i == playerID){
-			var seqond = new Date().getTime();
-			ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
-		}else{
-			ctx.fillStyle = "#000000"
-		}
+		320 - (320 * scale) , horizon_scanline + i / flat_factor, // destination x y
+
+		640 * scale, 1); // destination width height
+
+	//	ctx.drawImage(mapCanvas, 0, i, 640, 1, 0, i, 640, 1); // top down plain scanline render
+	}
+	
+
+	for (var i = 0; i < playerXs.length; i++){
+	
+		//
+		//scale = 1 + (ry / 640)// scaled x/y
 		
-		ctx.fillText(players[i].name, rx , ry);
+		//ctx.fillText(scale, 200, 200)
+		
+		//sy = (ry * scale) + horizon_scanline
+		
+		//ctx.drawImage(texture_PLAYER, rx, sy, 8*cam_zoom*scale, 8*cam_zoom*scale)
+		
+		//if (i == playerID){
+		//	var seqond = new Date().getTime();
+		//	ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
+		//}else{
+		//	ctx.fillStyle = "#000000"
+		//}
+		
+		//ctx.fillText(players[i].name, rx , sy);
 	}
 	
 	ctx.font = "30px Arial Narrow";
-	ctx.fillStyle = "#000000";
+	ctx.fillStyle = "#ffffff";
 	ctx.fillText("Rotation: " + cam_dir ,10,32); // title and player list
 	ctx.fillText("Players: ",10,64);
 	for (var i = 0; i < players.length; i++){
