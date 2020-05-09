@@ -84,6 +84,9 @@ function server_connect(){
 		if (playerLeaving < playerID) {
 			playerID--;
 		}
+		if (playerLeaving == playerID) {
+			socket.disconnect();
+		}
 		console.log(players[playerLeaving].name + " has left the server")
 		players = serverPlayerList
 	});
@@ -100,6 +103,9 @@ function server_connect(){
 		player.socket = socket.id
 		socket.emit("playerJoinRequest", player)
 		
+		socket.on("disconnect", function(){
+			
+		});
 	});
 }
 

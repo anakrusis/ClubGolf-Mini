@@ -19,11 +19,11 @@ io.on('connection', function (socket) {
 
 	socket.on("playerJoinRequest", function (playerJoining) {
 		
-		//playerJoining.x = startX + (Math.random() * 32); // initialize player serverside
-		//playerJoining.y = startY + (Math.random() * 32);
+		playerJoining.x = startX + (Math.random() * 32); // initialize player serverside
+		playerJoining.y = startY + (Math.random() * 32);
 		
-		playerJoining.x = startX;
-		playerJoining.y = startY;
+		//playerJoining.x = startX;
+		//playerJoining.y = startY;
 		
 		playerJoining.id = players.length;
 		

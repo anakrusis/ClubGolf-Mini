@@ -3,7 +3,7 @@
  <editorsettings>
   <export target="map.json" format="json"/>
  </editorsettings>
- <tileset firstgid="1" source="tileset.tsx"/>
+ <tileset firstgid="1" source="../client/tileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="32" height="64">
   <data encoding="csv">
 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
