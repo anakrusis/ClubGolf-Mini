@@ -1,0 +1,15 @@
+.column {
+	float: right;
+	width: 49%;
+	padding: 5px;
+}
+	
+.row::after {
+	content: "";
+	clear: both;
+	display: table;
+}
+
+canvas {
+	border:1px solid #000000;
+}

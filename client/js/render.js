@@ -47,7 +47,7 @@ var renderEntity = function (entity, x_offset, y_offset) {
 		
 		// Id is a property unique to players! nametag rendering
 		if (entity.id != undefined){
-			if (entity.id == playerID){ // current player name flashes
+			if (entity.id == client.playerID){ // current player name flashes
 				var seqond = new Date().getTime();
 				ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
 			}else{
@@ -109,10 +109,10 @@ var render = function () {
 	}
 	
 
-	for (var i = 0; i < players.length; i++){
+	for (var i = 0; i < client.players.length; i++){
 	
 		//mapCtx.drawImage(texture_PLAYER, rx, ry, 8*cam_zoom, 8*cam_zoom)
-		entityRenderList.push(players[i]);
+		entityRenderList.push(client.players[i]);
 	}
 	if (map){
 		for (i = 0; i < map.trees.length; i++){
@@ -128,19 +128,19 @@ var render = function () {
 	ctx.fillStyle = "#ffffff";
 	ctx.fillText("Rotation: " + cam_dir ,10,32); // title and player list
 	ctx.fillText("Players: ",10,64);
-	for (var i = 0; i < players.length; i++){
+	for (var i = 0; i < client.players.length; i++){
 		
-		if (i == playerID){
+		if (i == client.playerID){
 			var seqond = new Date().getTime();
 			ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
 		}else{
 			ctx.fillStyle = "#ffffff"
 		}
-		ctx.fillText(players[i].name,10,96 + (i*32) );
+		ctx.fillText(client.players[i].name,10,96 + (i*32) );
 	}
 	
-	if (socket){
-		if (!socket.connected){
+	if (client.socket){
+		if (!client.socket.connected){
 			ctx.fillText("Can't connect to server!", 200, 320)
 		}
 	}
