@@ -5,7 +5,7 @@ SETTINGS.prototype.init = function() {
 		playerName: "hello",
 		connectionString: "http://localhost:23456"
 	}
-	this.opts = {}
+
 	this.localStorageKey = "gameSettings";
 	this.settingsFormSelector = "#form";
 	this.frm = document.querySelector(this.settingsFormSelector);
@@ -18,12 +18,18 @@ SETTINGS.prototype.init = function() {
 
 SETTINGS.prototype.formOnSubmit = function(e) {
 	e.preventDefault();
-
-	this.opts.playerName = this.frm.querySelector(".setting[name='playerName']").value;
-	this.opts.connectionString = this.frm.querySelector(".setting[name='connectionString']").value;
+	
+	this.opts = {
+		playerName: this.frm.querySelector(".setting[name='playerName']").value,
+		connectionString: this.frm.querySelector(".setting[name='connectionString']").value
+	}
 
 	this.save();
 	server_connect();
+}
+
+SETTINGS.prototype.get = function() {
+	return this.opts;
 }
 
 SETTINGS.prototype.save = function() {
@@ -40,6 +46,8 @@ SETTINGS.prototype.load = function() {
 	for (var i in opts) {
 		this.frm.querySelector(".setting[name='"+i+"']").value = opts[i];
 	}
+	
+	this.opts = opts;
 }
 
 var settings;
