@@ -1,5 +1,5 @@
 var flat_factor = 12
-var horizon_scanline = 128
+var horizon_scanline = 256
 
 var scaledX = function (rx, ry){
 	line = (640 * ry) / (-ry + 640) // This is the algebraic inverse of the map drawing code
@@ -62,7 +62,8 @@ var render = function () {
 
 	// canvas clear and initial translation
 	ctx.clearRect(0,0,canvas.width,canvas.height)
-	ctx.fillStyle = "#220022";
+	ctx.fillStyle = "#7FC9FF";
+	//ctx.fillStyle = "#FF00FF"; // deastl mode
 	ctx.fillRect(0,0,canvas.width,canvas.height);
 	
 	mapCtx.clearRect(0,0,mapCanvas.width,mapCanvas.height)

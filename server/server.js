@@ -25,7 +25,7 @@ class Tree {
 	}
 }
 
-for (i = 0; i < 50; i++){
+for (i = 0; i < config.max_trees; i++){
 	treeX = Math.round ( Math.random() * map.width  * 8 );
 	treeY = Math.round ( Math.random() * map.height * 8 );
 	tree = new Tree (treeX, treeY) ;
