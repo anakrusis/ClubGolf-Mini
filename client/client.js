@@ -1,3 +1,53 @@
+function SETTINGS() {}
+
+SETTINGS.prototype.init = function() {
+	this.optsDefault = {
+		playerName: "hello",
+		connectionString: "http://localhost:23456"
+	}
+	this.opts = {}
+	this.localStorageKey = "gameSettings";
+	this.settingsFormSelector = "#form";
+	this.frm = document.querySelector(this.settingsFormSelector);
+	
+	this.formOnSubmit = this.formOnSubmit.bind(this);
+	this.frm.addEventListener('submit', this.formOnSubmit, false);
+	
+	this.load();
+}
+
+SETTINGS.prototype.formOnSubmit = function(e) {
+	e.preventDefault();
+
+	this.opts.playerName = this.frm.querySelector(".setting[name='playerName']").value;
+	this.opts.connectionString = this.frm.querySelector(".setting[name='connectionString']").value;
+
+	this.save();
+	server_connect();
+}
+
+SETTINGS.prototype.save = function() {
+	localStorage.setItem(this.localStorageKey, JSON.stringify(this.opts));
+}
+
+SETTINGS.prototype.load = function() {
+	
+	if (opts = JSON.parse(localStorage.getItem(this.localStorageKey))) {	
+	} else {
+		opts = this.optsDefault;
+	}
+	
+	for (var i in opts) {
+		this.frm.querySelector(".setting[name='"+i+"']").value = opts[i];
+	}
+}
+
+var settings;
+document.addEventListener('DOMContentLoaded', function(e) {
+	settings = new SETTINGS();
+	settings.init();
+});
+
 var socket;
 
 // Main canvas for rendering
@@ -59,17 +109,17 @@ addEventListener("mousewheel", function (e){
 	delta = e.wheelDelta;
 }, false);
 
-function server_connect(){
-
+function server_connect(name, connectionString) {
+	
 	var player = new Player() // player is just a temp variable, the properly synced one is players[playerID]
-	var name = document.getElementById("name").value;
+	var name = settings.opts.playerName;
 	player.name = name;
 	players = []
 	
 	if (socket){
 		socket.disconnect();
 	}
-	socket = io.connect("http://localhost:23456");
+	socket = io.connect(settings.opts.connectionString);
 
 	socket.on("playerJoin", function(playerJoining, serverPlayerList, serverMap){
 		console.log(playerJoining.name + " has joined the server")

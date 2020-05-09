@@ -26,10 +26,12 @@
 			</div>
 		</div>
 		
-		<form id="form" action="javascript:server_connect()">
+		<form id="form">
 			Name:<br>
-			<input type="text" id="name" name="name" value=""><br>
-			<input type="button" onclick="server_connect()" value="Connect">
+			<input class="setting" type="text" name="playerName" value=""><br>
+			Connection string<br>
+			<input class="setting" type="text" name="connectionString" value=""><br>
+			<input type="submit" value="Connect">
 		</form> 
 		
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
