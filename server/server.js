@@ -3,6 +3,7 @@ var config = require('./config.js');
 var io = require('socket.io')(config.port);
 
 var map = require('./map.json');
+map.trees = []
 
 console.log("Starting server") // init server
 
@@ -14,6 +15,24 @@ console.log(startTile)
 
 var startX = (startTile % map.width) * 8;
 var startY = Math.floor(startTile / map.width) * 8;
+
+class Tree {
+	constructor(x_in, y_in){
+		this.x = x_in;
+		this.y = y_in;
+		this.texture = 1;
+		this.height = 16;
+	}
+}
+
+for (i = 0; i < 50; i++){
+	treeX = Math.round ( Math.random() * map.width  * 8 );
+	treeY = Math.round ( Math.random() * map.height * 8 );
+	tree = new Tree (treeX, treeY) ;
+	tree.height = Math.random() * 20 + 8;
+	
+	map.trees.push( tree )
+}
 
 io.on('connection', function (socket) {
 

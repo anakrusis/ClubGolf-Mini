@@ -2,8 +2,8 @@ var socket;
 
 // Main canvas for rendering
 var canvas = document.getElementById("Canvas");
-canvas.tabindex = 0;
-canvas.setAttribute('style', "padding-left: 0;padding-right: 0;margin-left: auto;margin-right: auto;display: block;width: 425;");
+//canvas.tabindex = 0;
+//canvas.setAttribute('style', "padding-left: 0;padding-right: 0;margin-left: auto;margin-right: auto;display: block;width: 425;");
 var ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
@@ -11,14 +11,17 @@ var mapCanvas = document.getElementById("MapCanvas");
 var mapCtx = mapCanvas.getContext("2d");
 mapCtx.imageSmoothingEnabled = false;
 
-var tileset = new Image();
-tileset.src = "tileset.png";
-var texture_PLAYER = new Image();
-texture_PLAYER.src = "player.png";
+var tileset = new Image(); tileset.src = "tileset.png";
+var texture_PLAYER = new Image(); texture_PLAYER.src = "player.png";
+var texture_TREE = new Image(); texture_TREE.src = "tree.png";
+
+var textures = [texture_PLAYER, texture_TREE];
 
 var keysDown = {};
 var delta = 0;
 var map;
+
+var connectTimer = 0;
 
 class Ball {
 	constructor(){
@@ -35,6 +38,8 @@ class Player {
 		this.y = 0;
 		this.id = 0;
 		this.ball = new Ball();
+		this.texture = 0;
+		this.height = 8;
 	}
 }
 players = [];
@@ -76,7 +81,9 @@ function server_connect(){
 			cam_y = playerJoining.y
 		}
 		
-		map = serverMap
+		if (!map){ // If the player does not yet have the map, then here it is
+			map = serverMap
+		}
 	});
 	
 	socket.on("playerLeave", function(playerLeaving, serverPlayerList){
@@ -149,6 +156,17 @@ var update = function (modifier) {
 	//cam_zoom += (0.01 * delta)
 	cam_zoom = Math.max(1, cam_zoom)
 	delta = 0
+	
+	if (socket){
+		if (!socket.connected){
+			connectTimer++;
+			
+			if (connectTimer > 256){
+				connectTimer = 0;
+				socket.disconnect();
+			}
+		}
+	}
 }
 
 // main loop
