@@ -12,8 +12,8 @@ SOCKET.prototype.onPlayerJoin = function(playerJoining, serverPlayerList, server
 	
 	if (client.playerID == -1) {  // Handler for uninitialized player (client-side)
 		client.playerID = playerJoining.id
-		cam_x = playerJoining.x
-		cam_y = playerJoining.y
+		cam_x = playerJoining.ball.x
+		cam_y = playerJoining.ball.y
 	}
 	
 	if (!map){ // If the player does not yet have the map, then here it is
@@ -51,4 +51,8 @@ SOCKET.prototype.connect = function() {
 	socket.on("playerJoin", this.onPlayerJoin);
 	socket.on("playerLeave", client.onPlayerLeave);
 	socket.on("playerMove", client.onPlayerMove);
+	
+	socket.on("ballUpdate", function( id, ball ){
+		client.players[id].ball = ball
+	});
 }

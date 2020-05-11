@@ -1,8 +1,14 @@
 class Ball {
 	constructor(){
+		this.name = "Ball";
 		this.x = 0;
 		this.y = 0;
-		this.height = 0;
+		this.altitude = 0;
+		this.dir = 0;
+		this.velocity = 0;
+		
+		this.height = 1;
+		this.texture = 2;
 	}
 }
 
@@ -19,14 +25,10 @@ class Player {
 }
 
 var settings;
-var client;
-var socket;
 
 document.addEventListener('DOMContentLoaded', function(e) {
 	settings = new SETTINGS();
-	socket = new SOCKET();
-	client = new CLIENT();
 	
 	settings.init();
-	client.start();
+	startClient();
 });

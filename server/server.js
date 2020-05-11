@@ -36,10 +36,19 @@ for (i = 0; i < config.max_trees; i++){
 
 io.on('connection', function (socket) {
 
+	socket.on("ballUpdateRequest", function (playerID, ball) {
+	
+		players[playerID].ball = ball;
+		io.emit("ballUpdate", playerID, ball);
+	});
+
 	socket.on("playerJoinRequest", function (playerJoining) {
 		
 		playerJoining.x = startX + (Math.random() * 32); // initialize player serverside
 		playerJoining.y = startY + (Math.random() * 32);
+		
+		playerJoining.ball.x = playerJoining.x
+		playerJoining.ball.y = playerJoining.y + 8
 		
 		//playerJoining.x = startX;
 		//playerJoining.y = startY;

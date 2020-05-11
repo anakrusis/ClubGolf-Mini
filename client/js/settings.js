@@ -2,7 +2,7 @@ function SETTINGS() {}
 
 SETTINGS.prototype.init = function() {
 	this.optsDefault = {
-		playerName: "hello",
+		playerName: "Name",
 		connectionString: "http://localhost:23456"
 	}
 
@@ -25,7 +25,7 @@ SETTINGS.prototype.formOnSubmit = function(e) {
 	}
 
 	this.save();
-	socket.connect();
+	server_connect();
 }
 
 SETTINGS.prototype.get = function() {
