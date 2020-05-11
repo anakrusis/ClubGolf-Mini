@@ -21,11 +21,12 @@ playerID = -1
 
 cam_zoom = 2
 cam_unlock = false // can the camera move freely yes or no
+ball_unlock = true // can you swing and hit the ball?
 
 var startClient = function(){
 
 	// Main canvas for rendering
-	canvas = document.getElementById("Canvas");
+	canvas = document.querySelector("#Canvas");
 	//canvas.tabindex = 0;
 	//canvas.setAttribute('style', "padding-left: 0;padding-right: 0;margin-left: auto;margin-right: auto;display: block;width: 425;");
 	ctx = canvas.getContext("2d");
@@ -67,10 +68,9 @@ var startClient = function(){
 			if (cam_unlock){
 				cam_y -= 4 * Math.sin(cam_dir - Math.PI);
 				cam_x += 4 * Math.cos(cam_dir - Math.PI);
-			} else {
-			
-				player = players[playerID];
-				player.ball.dir -= Math.PI / 64;
+				
+			} else if (ball_unlock) {
+				players[playerID].ball.dir -= Math.PI / 64;
 				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 			}
 		}
@@ -78,7 +78,8 @@ var startClient = function(){
 			if (cam_unlock){
 				cam_y += 4 * Math.sin(cam_dir - Math.PI);
 				cam_x -= 4 * Math.cos(cam_dir - Math.PI);
-			} else {
+				
+			} else if (ball_unlock) {
 				players[playerID].ball.dir += Math.PI / 64;
 				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 			}
@@ -96,13 +97,23 @@ var startClient = function(){
 		if (98 in keysDown){ // numpad 2
 			cam_zoom-=0.1
 		}
+		
+		if (32 in keysDown){ // space
+			if (ball_unlock){
+				players[playerID].ball.velocity = 10;
+				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
+				ball_unlock = false
+			}
+		}
 		//cam_dir = Math.round(cam_dir * 10)/10
 		
-		//cam_zoom += (0.01 * delta)
+		cam_zoom += (0.002 * delta)
 		cam_zoom = Math.max(1, cam_zoom)
 		
 		if (players[playerID]){
 			cam_dir = players[playerID].ball.dir;
+			cam_x = players[playerID].ball.x;
+			cam_y = players[playerID].ball.y;
 		}
 		
 		delta = 0
@@ -155,8 +166,8 @@ var server_connect = function(){
 		
 		if (playerID == -1) {  // Handler for uninitialized player (client-side)
 			playerID = playerJoining.id
-			cam_x = playerJoining.x
-			cam_y = playerJoining.y
+			cam_x = playerJoining.ball.x
+			cam_y = playerJoining.ball.y
 		}
 		
 		if (!map){ // If the player does not yet have the map, then here it is
@@ -170,7 +181,7 @@ var server_connect = function(){
 			playerID--;
 		}
 		if (playerLeaving == playerID) {
-			socket.disconnect();
+			//socket.disconnect();
 		}
 		console.log(players[playerLeaving].name + " has left the server")
 		players = serverPlayerList
@@ -191,5 +202,16 @@ var server_connect = function(){
 		socket.on("disconnect", function(){
 			
 		});
+	});
+	
+	socket.on("ballUpdate", function( id, ball ){
+		if (players[id]) {
+			if (ball.velocity != players[id].ball.velocity){
+				players[id].ball = ball
+			}
+		}
+		if (ball.velocity < 0.001){
+			ball_unlock = true
+		}
 	});
 }

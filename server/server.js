@@ -22,6 +22,7 @@ class Tree {
 		this.y = y_in;
 		this.texture = 1;
 		this.height = 16;
+		this.width = 16;
 	}
 }
 
@@ -29,10 +30,28 @@ for (i = 0; i < config.max_trees; i++){
 	treeX = Math.round ( Math.random() * map.width  * 8 );
 	treeY = Math.round ( Math.random() * map.height * 8 );
 	tree = new Tree (treeX, treeY) ;
-	tree.height = Math.random() * 20 + 8;
+	tree.height = Math.random() * 20 + 12;
 	
 	map.trees.push( tree )
 }
+
+var update = function () {
+	for (i = 0; i < players.length; i++){
+		ball = players[i].ball;
+		ball.x += ( ball.velocity * Math.cos(ball.dir) )
+		ball.y += ( ball.velocity * Math.sin(ball.dir) )
+		
+		ball.velocity /= 1.1;
+		
+		if (ball.velocity < 0.001){
+			ball.velocity = 0;
+		}
+		
+		io.emit("ballUpdate", i, ball);
+	}
+}
+
+setInterval(()=> {update()}, 50);
 
 io.on('connection', function (socket) {
 

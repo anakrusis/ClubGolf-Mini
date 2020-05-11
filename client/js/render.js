@@ -1,49 +1,59 @@
 var flat_factor = 12
 var horizon_scanline = 256
+var renderAngle;
 
-var scaledX = function (rx, ry){
+var rotatedX = function(x, y){
+	tx = tra_x( x ) - 320;
+	ty = tra_y( y ) - 320;
+	return rot_x(renderAngle, tx, ty) + 320; 
+	
+}
+
+var rotatedY = function(x, y){
+	tx = tra_x( x ) - 320;
+	ty = tra_y( y ) - 320;
+	return rot_y(renderAngle, tx, ty) + 320;
+}
+
+var scaledX = function (x, y){
+
+	rx = rotatedX(x, y); ry = rotatedY(x, y);
+
 	line = (640 * ry) / (-ry + 640) // This is the algebraic inverse of the map drawing code
 	scale = 1 + (line/640)
 	return (rx - 320) * scale + 320
 }
 
-var scaledY = function (rx, ry){
+var scaledY = function (x, y){
+	
+	rx = rotatedX(x, y); ry = rotatedY(x, y);
+
 	line = (640 * ry) / (-ry + 640)
 	scale = 1 + (line/640)
 	return horizon_scanline + line / flat_factor
 }
 
 var compareHeightVal = function (entity1, entity2){
-	tx1 = tra_x( entity1.x ) - 320; // translated x/y
-	ty1 = tra_y( entity1.y ) - 320;
-	rx1 = rot_x(cam_dir, tx1, ty1) + 320; // rotated x/y
-	ry1 = rot_y(cam_dir, tx1, ty1) + 320;
-	sx1 = scaledY(rx1, ry1);
+
+	sy1 = scaledY(entity1.x, entity1.y);
+	sy2 = scaledY(entity2.x, entity2.y);
 	
-	tx2 = tra_x( entity2.x ) - 320;
-	ty2 = tra_y( entity2.y ) - 320;
-	rx2 = rot_x(cam_dir, tx2, ty2) + 320;
-	ry2 = rot_y(cam_dir, tx2, ty2) + 320;
-	sx2 = scaledY(rx2, ry2);
-	
-	return sx1 - sx2;
+	return sy1 - sy2;
 }
 
 var renderEntity = function (entity, x_offset, y_offset) {
-
-	tx = tra_x( entity.x ) - 320; // translated x/y
-	ty = tra_y( entity.y ) - 320;
-	rx = rot_x(cam_dir, tx, ty) + 320; // rotated x/y
-	ry = rot_y(cam_dir, tx, ty) + 320;
 	
-	sx = scaledX(rx, ry); // scaled x/y
-	sy = scaledY(rx, ry);
+	rx = rotatedX(entity.x, entity.y);// rotated x/y
+	ry = rotatedY(entity.x, entity.y);
+	sx = scaledX(entity.x, entity.y); // scaled x/y
+	sy = scaledY(entity.x, entity.y);
 	sy -= entity.height * cam_zoom * scale; // To draw at the bottom left corner
+	
 	
 	if (sy > horizon_scanline - ( entity.height * cam_zoom * scale)){ // Culling past the horizon
 	
 		// the real drawing
-		ctx.drawImage(textures[entity.texture], sx, sy, entity.height * cam_zoom * scale, entity.height * cam_zoom * scale)
+		ctx.drawImage(textures[entity.texture], sx, sy, entity.width * cam_zoom * scale, entity.height * cam_zoom * scale)
 		
 		// Id is a property unique to players! nametag rendering
 		if (entity.id != undefined){
@@ -60,6 +70,8 @@ var renderEntity = function (entity, x_offset, y_offset) {
 
 var render = function () {
 
+	renderAngle = 2 * Math.PI - cam_dir - Math.PI / 2
+
 	// canvas clear and initial translation
 	ctx.clearRect(0,0,canvas.width,canvas.height)
 	ctx.fillStyle = "#7FC9FF";
@@ -71,7 +83,7 @@ var render = function () {
 	mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
 	
 	mapCtx.translate(320, 320);
-	mapCtx.rotate(cam_dir);
+	mapCtx.rotate(renderAngle);
 	
 	entityRenderList = [];
 	
@@ -127,7 +139,7 @@ var render = function () {
 	
 	ctx.font = "30px Arial Narrow";
 	ctx.fillStyle = "#ffffff";
-	ctx.fillText("Rotation: " + cam_dir ,10,32); // title and player list
+	ctx.fillText("Rotation: " + renderAngle ,10,32); // title and player list
 	ctx.fillText("Players: ",10,64);
 	for (var i = 0; i < players.length; i++){
 		
