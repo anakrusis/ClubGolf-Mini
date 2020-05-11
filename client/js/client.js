@@ -69,7 +69,7 @@ var startClient = function(){
 				cam_y -= 4 * Math.sin(cam_dir - Math.PI);
 				cam_x += 4 * Math.cos(cam_dir - Math.PI);
 				
-			} else if (ball_unlock) {
+			} else if (ball_unlock && players[playerID]) {
 				players[playerID].ball.dir -= Math.PI / 64;
 				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 			}
@@ -79,7 +79,7 @@ var startClient = function(){
 				cam_y += 4 * Math.sin(cam_dir - Math.PI);
 				cam_x -= 4 * Math.cos(cam_dir - Math.PI);
 				
-			} else if (ball_unlock) {
+			} else if (ball_unlock && players[playerID]) {
 				players[playerID].ball.dir += Math.PI / 64;
 				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 			}
@@ -99,7 +99,7 @@ var startClient = function(){
 		}
 		
 		if (32 in keysDown){ // space
-			if (ball_unlock){
+			if (ball_unlock && players[playerID]){
 				players[playerID].ball.velocity = 10;
 				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 				ball_unlock = false
@@ -209,9 +209,14 @@ var server_connect = function(){
 			if (ball.velocity != players[id].ball.velocity){
 				players[id].ball = ball
 			}
-		}
-		if (ball.velocity < 0.001){
-			ball_unlock = true
+			
+			if (id == playerID){
+				if (ball.velocity < 0.001){
+					ball_unlock = true;
+				}else{
+					ball_unlock = false;
+				}
+			}	
 		}
 	});
 }

@@ -16,6 +16,11 @@ console.log(startTile)
 var startX = (startTile % map.width) * 8;
 var startY = Math.floor(startTile / map.width) * 8;
 
+var getTileIndex = function(x, y){
+	x = Math.floor(x / 8); y = Math.floor(y / 8);
+	return ((y) * map.width ) + (x);
+}
+
 class Tree {
 	constructor(x_in, y_in){
 		this.x = x_in;
@@ -32,7 +37,10 @@ for (i = 0; i < config.max_trees; i++){
 	tree = new Tree (treeX, treeY) ;
 	tree.height = Math.random() * 20 + 12;
 	
-	map.trees.push( tree )
+	index = getTileIndex(treeX, treeY);
+	if (mapData[index] == 1){
+		map.trees.push( tree )
+	}
 }
 
 var update = function () {
