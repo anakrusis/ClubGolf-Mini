@@ -1,0 +1,29 @@
+{
+	"clubs":[
+	
+		{
+			"name":"Putter",
+			"vel":"4",
+			"lift":"0"
+		},
+		
+		{
+			"name":"Wedge",
+			"vel":"4",
+			"lift":"10"
+		},
+		
+		{
+			"name":"Wood",
+			"vel":"12",
+			"lift":"4"
+		},
+		
+		{
+			"name":"Driver",
+			"vel":"24",
+			"lift":"6"
+		}
+
+	]
+}

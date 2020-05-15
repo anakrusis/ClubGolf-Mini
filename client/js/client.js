@@ -13,11 +13,13 @@ textures = [texture_PLAYER, texture_TREE, texture_BALL];
 var keysDown = {};
 var delta = 0;
 var map;
+var clubs
 
 var connectTimer = 0;
 
 players = [];
-playerID = -1
+playerID = -1 // Your player ID
+var currentPlayer; // The current player who is hitting the ball right now
 
 cam_zoom = 2
 cam_unlock = false // can the camera move freely yes or no
@@ -55,6 +57,12 @@ var startClient = function(){
 			if (cam_unlock){
 				cam_y += 4 * Math.sin(cam_dir - Math.PI / 2);
 				cam_x -= 4 * Math.cos(cam_dir - Math.PI / 2);
+				
+			} else if (ball_unlock && players[playerID]) {
+				players[playerID].club = Math.min( players[playerID].club + 1, clubs.length-1);
+				socket.emit("playerUpdateRequest", players[playerID], playerID);
+				
+				keysDown[87] = false;
 			}
 
 		}
@@ -62,6 +70,12 @@ var startClient = function(){
 			if (cam_unlock){
 				cam_y -= 4 * Math.sin(cam_dir - Math.PI / 2);
 				cam_x += 4 * Math.cos(cam_dir - Math.PI / 2);
+				
+			} else if (ball_unlock && players[playerID]) {
+				players[playerID].club = Math.max( players[playerID].club - 1, 0);
+				socket.emit("playerUpdateRequest", players[playerID], playerID);
+				
+				keysDown[83] = false;
 			}
 		}
 		if (65 in keysDown) { // left 
@@ -99,9 +113,8 @@ var startClient = function(){
 		}
 		
 		if (32 in keysDown){ // space
-			if (ball_unlock && players[playerID]){
-				players[playerID].ball.velocity = 10;
-				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
+			if (ball_unlock && players[playerID] && playerID == currentPlayer){
+				socket.emit("ballHit", playerID, players[playerID].ball);
 				ball_unlock = false
 			}
 		}
@@ -160,7 +173,7 @@ var server_connect = function(){
 	}
 	socket = io.connect(settings.opts.connectionString);
 
-	socket.on("playerJoin", function(playerJoining, serverPlayerList, serverMap){
+	socket.on("playerJoin", function(playerJoining, serverPlayerList, serverMap, serverClubs, s_currentPlayer){
 		console.log(playerJoining.name + " has joined the server")
 		players = serverPlayerList
 		
@@ -172,6 +185,8 @@ var server_connect = function(){
 		
 		if (!map){ // If the player does not yet have the map, then here it is
 			map = serverMap
+			clubs = serverClubs
+			currentPlayer = s_currentPlayer;
 		}
 	});
 	
@@ -187,9 +202,8 @@ var server_connect = function(){
 		players = serverPlayerList
 	});
 	
-	socket.on("playerMove", function(playerMovingID, x, y){
-		players[playerMovingID].x = x
-		players[playerMovingID].y = y
+	socket.on("playerUpdate", function(playerUpdating, playerUpdatingID){
+		players[playerUpdatingID] = playerUpdating;
 	});
 	
 	socket.on("connect", function(){
@@ -218,5 +232,9 @@ var server_connect = function(){
 				}
 			}	
 		}
+	});
+	
+	socket.on("shotFinish", function ( playerCurrent ){
+		currentPlayer = playerCurrent;
 	});
 }

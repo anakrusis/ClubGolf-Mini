@@ -2,13 +2,17 @@ var config = require('./config.js');
 
 var io = require('socket.io')(config.port);
 
+var clubs = require('./clubs.json');
 var map = require('./map.json');
 map.trees = []
 
 console.log("Starting server") // init server
 
 var players = []
+var currentPlayer = 0;
 var mapData = map.layers[0].data
+
+var ballActive = false;
 
 var startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
 console.log(startTile)
@@ -44,18 +48,29 @@ for (i = 0; i < config.max_trees; i++){
 }
 
 var update = function () {
-	for (i = 0; i < players.length; i++){
-		ball = players[i].ball;
+	if (players[currentPlayer]){
+		ball = players[currentPlayer].ball;
 		ball.x += ( ball.velocity * Math.cos(ball.dir) )
 		ball.y += ( ball.velocity * Math.sin(ball.dir) )
-		
+	
 		ball.velocity /= 1.1;
-		
+	
 		if (ball.velocity < 0.001){
 			ball.velocity = 0;
 		}
+	
+		io.emit("ballUpdate", currentPlayer, ball);
 		
-		io.emit("ballUpdate", i, ball);
+		if (ball.velocity == 0){
+			if (ballActive){
+				ballActive = false;
+				currentPlayer = (currentPlayer + 1) % players.length;
+				currentPlayer.shot++;
+				io.emit("playerUpdate", currentPlayer, currentPlayer.id);
+				io.emit("shotFinish", currentPlayer);
+				console.log(players[currentPlayer].name + "'s turn! (ID: " + players[currentPlayer].id + ")");
+			}
+		}
 	}
 }
 
@@ -63,10 +78,16 @@ setInterval(()=> {update()}, 50);
 
 io.on('connection', function (socket) {
 
-	socket.on("ballUpdateRequest", function (playerID, ball) {
+	socket.on("ballHit", function (playerID, ball) {
 	
-		players[playerID].ball = ball;
-		io.emit("ballUpdate", playerID, ball);
+		if (!ballActive && playerID == currentPlayer){
+			currentClub = players[playerID].club;
+			ball.velocity = clubs.clubs[currentClub].vel;
+			players[playerID].ball = ball;
+			io.emit("ballUpdate", playerID, ball);
+			ballActive = true;
+		}
+
 	});
 
 	socket.on("playerJoinRequest", function (playerJoining) {
@@ -84,10 +105,17 @@ io.on('connection', function (socket) {
 		
 		players.push(playerJoining);
 		
-		io.emit("playerJoin", playerJoining, players, map)
-		io.emit("playerMove", playerJoining.id, playerJoining.x, playerJoining.y)
+		io.emit("playerJoin", playerJoining, players, map, clubs.clubs, currentPlayer);
+		io.emit("playerUpdate", playerJoining, playerJoining.id);
 		
 		console.log(playerJoining.name + " has joined the server (ID: " + playerJoining.id + ")" )
+	});
+	
+	socket.on("playerUpdateRequest", function (playerUpdating, playerID) {
+		if (playerID == currentPlayer){
+			players[playerID] = playerUpdating;
+			io.emit("playerUpdate", playerUpdating, playerID);
+		}
 	});
 	
 	socket.on("disconnect", function () {
@@ -97,6 +125,9 @@ io.on('connection', function (socket) {
 		players.splice(playerLeaving.id, 1)
 		for (i = playerLeaving.id; i < players.length; i++){
 			players[i].id--;
+		}
+		if (currentPlayer > playerLeaving.id){
+			currentPlayer--;
 		}
 		io.emit("playerLeave", playerLeaving.id, players)
 	});

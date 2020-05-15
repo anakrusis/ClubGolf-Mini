@@ -1,5 +1,5 @@
-var flat_factor = 12
-var horizon_scanline = 256
+var flat_factor = 10
+var horizon_scanline = 224
 var renderAngle;
 
 var rotatedX = function(x, y){
@@ -139,8 +139,14 @@ var render = function () {
 	
 	ctx.font = "30px Arial Narrow";
 	ctx.fillStyle = "#ffffff";
-	ctx.fillText("Rotation: " + renderAngle ,10,32); // title and player list
+	ctx.fillText("Current Player: " + currentPlayer ,10,32); // title and player list
 	ctx.fillText("Players: ",10,64);
+	
+	if (clubs){
+		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
+	}
+
+	
 	for (var i = 0; i < players.length; i++){
 		
 		if (i == playerID){
