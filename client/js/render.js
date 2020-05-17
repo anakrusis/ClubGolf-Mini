@@ -131,8 +131,12 @@ var render = function () {
 	
 
 	for (var i = 0; i < players.length; i++){
-		entityRenderList.push(players[i]);
-		entityRenderList.push(players[i].ball);
+	
+		if (!players[i].done){
+			entityRenderList.push(players[i]);
+			entityRenderList.push(players[i].ball);
+		}
+
 	}
 	if (map){
 		for (i = 0; i < map.trees.length; i++){
@@ -146,8 +150,13 @@ var render = function () {
 	
 	ctx.font = "30px Arial Narrow";
 	ctx.fillStyle = "#ffffff";
-	ctx.fillText("Current Player: " + currentPlayer ,10,32); // title and player list
-	ctx.fillText("Players: ",10,64);
+	
+	if (players[currentPlayer]){
+		var topString = players[currentPlayer].name + "'s turn (Shot: " + players[currentPlayer].shot + ")";
+		ctx.fillText(topString,10,32); // title and player list
+	}
+
+	ctx.fillText("Players: ",10,96);
 	
 	if (clubs){
 		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
@@ -162,7 +171,7 @@ var render = function () {
 		}else{
 			ctx.fillStyle = "#ffffff"
 		}
-		ctx.fillText(players[i].name,10,96 + (i*32) );
+		ctx.fillText(players[i].name,10,128 + (i*32) );
 	}
 	
 	if (socket){

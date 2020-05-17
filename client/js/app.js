@@ -22,7 +22,8 @@ class Player {
 		this.id = 0;
 		this.ball = new Ball();
 		this.club = 0;
-		this.shot = 0;
+		this.shot = 1;
+		this.done = false;
 		
 		this.texture = 0;
 		this.height = 8;

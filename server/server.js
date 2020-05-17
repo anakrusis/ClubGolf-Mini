@@ -5,8 +5,9 @@ var io = require('socket.io')(config.port);
 var clubs = require('./clubs.json');
 var map = require('./map.json');
 map.trees = []
+map.par = 4
 
-console.log("Starting server") // init server
+console.log("Starting server...\n") // init server
 
 var players = []
 var currentPlayer = 0;
@@ -14,15 +15,29 @@ var mapData = map.layers[0].data
 
 var ballActive = false;
 
+// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
 var startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
-console.log(startTile)
-
 var startX = (startTile % map.width) * 8;
 var startY = Math.floor(startTile / map.width) * 8;
+console.log("Start pos.: " + startX + "," + startY);
+var holeTile = mapData.findIndex( function(element, index, array){ return element == 25 });
+var holeX = (holeTile % map.width) * 8;
+var holeY = Math.floor(holeTile / map.width) * 8;
+console.log("Hole pos.: " + holeX + "," + holeY);
 
 var getTileIndex = function(x, y){
 	x = Math.floor(x / 8); y = Math.floor(y / 8);
 	return ((y) * map.width ) + (x);
+}
+
+var nextAvailablePlayer = function(){
+	for (i = 0; i < players.length; i++) {
+		index = (currentPlayer + i + 1) % players.length;
+		if (!players[index].done){
+			return index;
+		}
+	}
+	return -1;
 }
 
 class Tree {
@@ -60,17 +75,35 @@ var update = function () {
 			ball.velocity = 0;
 		}
 	
+		if (ballActive && ball.velocity < 1) {
+			index = getTileIndex(ball.x, ball.y);
+			if (mapData[index] == 25){
+				players[currentPlayer].done = true;
+				io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+				console.log(players[currentPlayer].name + " is done!");
+				ball.velocity = 0;
+			}
+		}
 		io.emit("ballUpdate", currentPlayer, ball);
 		
-		if (ball.velocity == 0){
+		if (ball.velocity == 0){ // on Shot Finish
 			if (ballActive){
-				ballActive = false;
+	
+				next = nextAvailablePlayer();	
+				console.log(next);
 				
-				currentPlayer = (currentPlayer + 1) % players.length;
-				currentPlayer.shot++;
-				io.emit("playerUpdate", currentPlayer, currentPlayer.id);
-				io.emit("shotFinish", currentPlayer);
-				console.log(players[currentPlayer].name + "'s turn! (ID: " + players[currentPlayer].id + ")");
+				if (next != -1){
+					players[currentPlayer].shot++; // incrementing the old players shot first.
+					
+					currentPlayer = next;
+					io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+					io.emit("shotFinish", currentPlayer);
+					console.log(players[currentPlayer].name + "'s turn! (ID: " + players[currentPlayer].id + ")");
+					
+				} else {
+					console.log("Game over!");
+				}
+				ballActive = false;
 			}
 		}
 	}

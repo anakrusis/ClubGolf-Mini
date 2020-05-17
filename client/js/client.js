@@ -242,19 +242,14 @@ var server_connect = function(){
 		if (players[id]) {
 			if (ball.velocity != players[id].ball.velocity){
 				players[id].ball = ball
-			}
-			
-			if (id == playerID){
-				if (ball.velocity < 0.001){
-					ball_unlock = true;
-				}else{
-					ball_unlock = false;
-				}
 			}	
 		}
 	});
 	
 	socket.on("shotFinish", function ( playerCurrent ){
 		currentPlayer = playerCurrent;
+		if (playerCurrent == playerID){
+			ball_unlock = true;
+		}
 	});
 }
