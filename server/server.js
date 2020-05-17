@@ -32,6 +32,7 @@ class Tree {
 		this.texture = 1;
 		this.height = 16;
 		this.width = 16;
+		this.shadow = false;
 	}
 }
 
@@ -64,6 +65,7 @@ var update = function () {
 		if (ball.velocity == 0){
 			if (ballActive){
 				ballActive = false;
+				
 				currentPlayer = (currentPlayer + 1) % players.length;
 				currentPlayer.shot++;
 				io.emit("playerUpdate", currentPlayer, currentPlayer.id);
@@ -112,10 +114,15 @@ io.on('connection', function (socket) {
 	});
 	
 	socket.on("playerUpdateRequest", function (playerUpdating, playerID) {
-		if (playerID == currentPlayer){
+		//if (playerID == currentPlayer){
+		if (true){
 			players[playerID] = playerUpdating;
 			io.emit("playerUpdate", playerUpdating, playerID);
 		}
+	});
+	
+	socket.on("ballUpdateRequest", function (playerID, ball) {
+		// todo
 	});
 	
 	socket.on("disconnect", function () {
@@ -126,8 +133,9 @@ io.on('connection', function (socket) {
 		for (i = playerLeaving.id; i < players.length; i++){
 			players[i].id--;
 		}
-		if (currentPlayer > playerLeaving.id){
+		if (currentPlayer >= playerLeaving.id){
 			currentPlayer--;
+			currentPlayer = Math.max(currentPlayer, 0)
 		}
 		io.emit("playerLeave", playerLeaving.id, players)
 	});

@@ -83,9 +83,6 @@ var startClient = function(){
 				cam_y -= 4 * Math.sin(cam_dir - Math.PI);
 				cam_x += 4 * Math.cos(cam_dir - Math.PI);
 				
-			} else if (ball_unlock && players[playerID]) {
-				players[playerID].ball.dir -= Math.PI / 64;
-				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 			}
 		}
 		if (68 in keysDown) { // right
@@ -93,11 +90,34 @@ var startClient = function(){
 				cam_y += 4 * Math.sin(cam_dir - Math.PI);
 				cam_x -= 4 * Math.cos(cam_dir - Math.PI);
 				
-			} else if (ball_unlock && players[playerID]) {
-				players[playerID].ball.dir += Math.PI / 64;
-				socket.emit("ballUpdateRequest", playerID, players[playerID].ball);
 			}
 		}
+		if (ball_unlock && players[playerID]){
+			if (65 in keysDown || 68 in keysDown){
+			
+				if (65 in keysDown){
+					players[playerID].ball.dir -= Math.PI / 64;
+				}
+				if (68 in keysDown){
+					players[playerID].ball.dir += Math.PI / 64;
+				}
+			
+				x_add = 8 * Math.cos(players[playerID].ball.dir + Math.PI / 1.2);
+				y_add = 8 * Math.sin(players[playerID].ball.dir + Math.PI / 1.2);
+				players[playerID].x = players[playerID].ball.x + x_add;
+				players[playerID].y = players[playerID].ball.y + y_add;
+			
+				socket.emit("playerUpdateRequest", players[playerID], playerID);
+				
+				if (65 in keysDown){
+					players[playerID].ball.dir += Math.PI / 64;
+				}
+				if (68 in keysDown){
+					players[playerID].ball.dir -= Math.PI / 64;
+				}
+			}
+		}
+
 		
 		if (100 in keysDown) { // numpad 4 
 			cam_dir -= Math.PI / 32;

@@ -47,8 +47,12 @@ var renderEntity = function (entity, x_offset, y_offset) {
 	ry = rotatedY(entity.x, entity.y);
 	sx = scaledX(entity.x, entity.y); // scaled x/y
 	sy = scaledY(entity.x, entity.y);
+	sx -= (entity.width / 2) * cam_zoom * scale;
 	sy -= entity.height * cam_zoom * scale; // To draw at the bottom left corner
 	
+	if (entity.name == "Ball"){
+		mapCtx.drawImage(textures[2], rx, ry, 2*cam_zoom, 2*cam_zoom)
+	}
 	
 	if (sy > horizon_scanline - ( entity.height * cam_zoom * scale)){ // Culling past the horizon
 	
@@ -120,10 +124,13 @@ var render = function () {
 	//	ctx.drawImage(mapCanvas, 0, i, 640, 1, 0, i, 640, 1); // top down plain scanline render
 	}
 	
+	ctx.beginPath(); // crosshair
+	ctx.moveTo(320, 280);
+	ctx.lineTo(320, horizon_scanline);
+	ctx.stroke();
+	
 
 	for (var i = 0; i < players.length; i++){
-	
-		//mapCtx.drawImage(texture_PLAYER, rx, ry, 8*cam_zoom, 8*cam_zoom)
 		entityRenderList.push(players[i]);
 		entityRenderList.push(players[i].ball);
 	}

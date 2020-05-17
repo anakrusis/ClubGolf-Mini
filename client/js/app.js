@@ -10,6 +10,7 @@ class Ball {
 		this.height = 1;
 		this.texture = 2;
 		this.width = 1;
+		this.shadow = true;
 	}
 }
 
@@ -26,6 +27,7 @@ class Player {
 		this.texture = 0;
 		this.height = 8;
 		this.width = 8;
+		this.shadow = true;
 	}
 }
 
