@@ -25,8 +25,15 @@ cam_zoom = 2
 cam_unlock = false // can the camera move freely yes or no
 ball_unlock = true // can you swing and hit the ball?
 
-var startClient = function(){
+function onSongLoaded(player) {
+	player.play();
+}
 
+var modPlayer = new ScripTracker();
+modPlayer.on(ScripTracker.Events.playerReady, onSongLoaded);
+//modPlayer.loadModule("http://battleofthebits.org/player/EntryDonload/34188/BotB%252034188%2520intosy.mod");
+
+var startClient = function(){
 	// Main canvas for rendering
 	canvas = document.querySelector("#Canvas");
 	//canvas.tabindex = 0;
