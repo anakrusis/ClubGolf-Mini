@@ -67,6 +67,7 @@ var renderEntity = function (entity, x_offset, y_offset) {
 			}else{
 				ctx.fillStyle = "#ffffff"
 			}
+			ctx.font = "30px Arial Narrow";
 			ctx.fillText(entity.name, sx , sy);
 		}
 	}
@@ -150,21 +151,16 @@ var render = function () {
 	
 	ctx.font = "30px Arial Narrow";
 	ctx.fillStyle = "#ffffff";
+	ctx.textAlign = "left";
 	
-	if (players[currentPlayer]){
+	if (players[currentPlayer]){ // player list
 		var topString = players[currentPlayer].name + "'s turn (Shot: " + players[currentPlayer].shot + ")";
-		ctx.fillText(topString,10,32); // title and player list
+		ctx.fillText(topString,10,32);
 	}
 
-	ctx.fillText("Players: ",10,96);
-	
-	if (clubs){
-		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
-	}
-
-	
+	ctx.fillText("Players: ",10,96); 
 	for (var i = 0; i < players.length; i++){
-		
+	
 		if (i == playerID){
 			var seqond = new Date().getTime();
 			ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
@@ -172,6 +168,20 @@ var render = function () {
 			ctx.fillStyle = "#ffffff"
 		}
 		ctx.fillText(players[i].name,10,128 + (i*32) );
+	}
+	ctx.fillStyle = "#ffffff"
+	
+	if (clubs){ // clubs
+		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
+	}
+	
+	if (betweenTurnTimer > 0){
+		ctx.fillStyle = "rgba(255, 255, 255, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
+		ctx.font = "bold 60px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText(statusStrings[turnStatus], 320, 320);
+		ctx.fillStyle = "rgba(0, 0, 0, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
+		ctx.strokeText(statusStrings[turnStatus], 320, 320);
 	}
 	
 	if (socket){

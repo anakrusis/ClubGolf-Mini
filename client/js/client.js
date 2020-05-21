@@ -10,12 +10,17 @@ texture_TREE = new Image(); texture_TREE.src = "tree.png";
 texture_BALL = new Image(); texture_BALL.src = "ball.png";
 textures = [texture_PLAYER, texture_TREE, texture_BALL];
 
+statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Unknown Ground Type!"];
+
 var keysDown = {};
 var delta = 0;
 var map;
 var clubs
 
 var connectTimer = 0;
+var betweenTurnTimer = 0;
+var BETWEEN_TURN_TIME = 96;
+var turnStatus;
 
 players = [];
 playerID = -1 // Your player ID
@@ -24,14 +29,6 @@ var currentPlayer; // The current player who is hitting the ball right now
 cam_zoom = 2
 cam_unlock = false // can the camera move freely yes or no
 ball_unlock = true // can you swing and hit the ball?
-
-function onSongLoaded(player) {
-	player.play();
-}
-
-var modPlayer = new ScripTracker();
-modPlayer.on(ScripTracker.Events.playerReady, onSongLoaded);
-//modPlayer.loadModule("http://battleofthebits.org/player/EntryDonload/34188/BotB%252034188%2520intosy.mod");
 
 var startClient = function(){
 	// Main canvas for rendering
@@ -108,12 +105,6 @@ var startClient = function(){
 				if (68 in keysDown){
 					players[playerID].ball.dir += Math.PI / 64;
 				}
-			
-				x_add = 8 * Math.cos(players[playerID].ball.dir + Math.PI / 1.2);
-				y_add = 8 * Math.sin(players[playerID].ball.dir + Math.PI / 1.2);
-				players[playerID].x = players[playerID].ball.x + x_add;
-				players[playerID].y = players[playerID].ball.y + y_add;
-			
 				socket.emit("playerUpdateRequest", players[playerID], playerID);
 				
 				if (65 in keysDown){
@@ -150,10 +141,10 @@ var startClient = function(){
 		cam_zoom += (0.002 * delta)
 		cam_zoom = Math.max(1, cam_zoom)
 		
-		if (players[playerID]){
-			cam_dir = players[playerID].ball.dir;
-			cam_x = players[playerID].ball.x;
-			cam_y = players[playerID].ball.y;
+		if (players[currentPlayer]){ // camera spectates the player who is currently up
+			cam_dir = players[currentPlayer].ball.dir;
+			cam_x = players[currentPlayer].ball.x;
+			cam_y = players[currentPlayer].ball.y;
 		}
 		
 		delta = 0
@@ -168,6 +159,9 @@ var startClient = function(){
 				}
 			}
 		}
+		
+		betweenTurnTimer--;
+		betweenTurnTimer = Math.max(0, betweenTurnTimer);
 	}
 
 	// main loop
@@ -252,11 +246,16 @@ var server_connect = function(){
 			}	
 		}
 	});
-	
-	socket.on("shotFinish", function ( playerCurrent ){
+	socket.on("turnStart", function( playerCurrent ) {
 		currentPlayer = playerCurrent;
 		if (playerCurrent == playerID){
 			ball_unlock = true;
 		}
+		betweenTurnTimer = 0;
+	});
+	
+	socket.on("turnFinish", function ( playerCurrent, status ){
+		betweenTurnTimer = BETWEEN_TURN_TIME;
+		turnStatus = status;
 	});
 }

@@ -14,6 +14,8 @@ var currentPlayer = 0;
 var mapData = map.layers[0].data
 
 var ballActive = false;
+var betweenTurnTimer = -1;
+var BETWEEN_TURN_TIME = 48;
 
 // getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
 var startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
@@ -23,7 +25,7 @@ console.log("Start pos.: " + startX + "," + startY);
 var holeTile = mapData.findIndex( function(element, index, array){ return element == 25 });
 var holeX = (holeTile % map.width) * 8;
 var holeY = Math.floor(holeTile / map.width) * 8;
-console.log("Hole pos.: " + holeX + "," + holeY);
+console.log("Hole pos.: " + holeX + "," + holeY + "\n");
 
 var getTileIndex = function(x, y){
 	x = Math.floor(x / 8); y = Math.floor(y / 8);
@@ -63,50 +65,105 @@ for (i = 0; i < config.max_trees; i++){
 	}
 }
 
+var onTurnFinish = function() {
+
+	players[currentPlayer].shot++;// incrementing the old players shot first.
+	var thisBall = players[currentPlayer].ball;
+	index = getTileIndex(thisBall.x, thisBall.y);
+	
+	if (mapData[index] == 1){
+		status = 0; // out of bounds
+	}else if (mapData[index] == 19){
+		status = 1; // rough
+	}else if (mapData[index] == 23 || mapData[index] == 21){
+		status = 2; // fairway
+	}else if (mapData[index] == 27){
+		status = 3; // green
+	}else if (mapData[index] == 25){
+		status = 4; // hole
+	}else{
+		status = 5; // misc
+	}
+		
+	io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+	io.emit("turnFinish", currentPlayer, status);
+	
+	ballActive = false;
+	betweenTurnTimer = BETWEEN_TURN_TIME;
+}
+
+var onTurnStart = function() {
+	next = nextAvailablePlayer();
+
+	if (next != -1){
+		currentPlayer = next;
+		console.log(players[currentPlayer].name + "'s turn! (ID: " + players[currentPlayer].id + ")");
+	
+	} else {
+		onCourseEnd();
+	}
+	ballActive = false;
+	betweenTurnTimer = -1;
+	
+	var thisBall = players[currentPlayer].ball
+	thisBall.dir = Math.atan2(holeY + 4 - thisBall.y, holeX + 4 - thisBall.x);
+	io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+	io.emit("turnStart", currentPlayer);
+}
+
+var onCourseEnd = function() {
+	console.log("\nAll players have finished the course! Game over!");
+	console.log("Here are the scores:");
+	
+	for (i = 0; i < players.length; i++){
+		console.log( players[i].name + ": " + players[i].shot);
+	}
+}
+
 var update = function () {
 	if (players[currentPlayer]){
 		ball = players[currentPlayer].ball;
 		ball.x += ( ball.velocity * Math.cos(ball.dir) )
 		ball.y += ( ball.velocity * Math.sin(ball.dir) )
 	
-		ball.velocity /= 1.1;
+		ball.velocity /= 1.1; //friction
 	
 		if (ball.velocity < 0.001){
 			ball.velocity = 0;
+		}
+		
+		if (!ballActive){
+			x_add = 8 * Math.cos(ball.dir + Math.PI / 1.2);
+			y_add = 8 * Math.sin(ball.dir + Math.PI / 1.2);
+			players[currentPlayer].x = ball.x + x_add;
+			players[currentPlayer].y = ball.y + y_add;
 		}
 	
 		if (ballActive && ball.velocity < 1) {
 			index = getTileIndex(ball.x, ball.y);
 			if (mapData[index] == 25){
 				players[currentPlayer].done = true;
-				io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+				//io.emit("playerUpdate", players[currentPlayer], currentPlayer);
 				console.log(players[currentPlayer].name + " is done!");
 				ball.velocity = 0;
 			}
 		}
-		io.emit("ballUpdate", currentPlayer, ball);
+		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
 		
 		if (ball.velocity == 0){ // on Shot Finish
 			if (ballActive){
-	
-				next = nextAvailablePlayer();	
-				console.log(next);
-				
-				if (next != -1){
-					players[currentPlayer].shot++; // incrementing the old players shot first.
-					
-					currentPlayer = next;
-					io.emit("playerUpdate", players[currentPlayer], currentPlayer);
-					io.emit("shotFinish", currentPlayer);
-					console.log(players[currentPlayer].name + "'s turn! (ID: " + players[currentPlayer].id + ")");
-					
-				} else {
-					console.log("Game over!");
-				}
-				ballActive = false;
+				onTurnFinish();
 			}
 		}
+		
+		if (betweenTurnTimer > 0){
+			betweenTurnTimer--;
+			//console.log(betweenTurnTimer);
+		}else if (betweenTurnTimer == 0){
+			onTurnStart();
+		}
 	}
+
 }
 
 setInterval(()=> {update()}, 50);
@@ -127,14 +184,12 @@ io.on('connection', function (socket) {
 
 	socket.on("playerJoinRequest", function (playerJoining) {
 		
-		playerJoining.x = startX + (Math.random() * 32); // initialize player serverside
-		playerJoining.y = startY + (Math.random() * 32);
+		playerJoining.ball.x = startX + (Math.random() * 32) // initialize player serverside
+		playerJoining.ball.y = startY + (Math.random() * 32)
+		playerJoining.ball.dir = Math.atan2(holeY + 4 - playerJoining.ball.y, holeX + 4 - playerJoining.ball.x);
 		
-		playerJoining.ball.x = playerJoining.x
-		playerJoining.ball.y = playerJoining.y + 8
-		
-		//playerJoining.x = startX;
-		//playerJoining.y = startY;
+		playerJoining.x = startX; 
+		playerJoining.y = startY;
 		
 		playerJoining.id = players.length;
 		
