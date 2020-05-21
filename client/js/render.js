@@ -170,6 +170,9 @@ var render = function () {
 		ctx.fillText(players[i].name,10,128 + (i*32) );
 	}
 	ctx.fillStyle = "#ffffff"
+	if (map){
+		ctx.fillText("Par: " + map.par, 566, 32);
+	}
 	
 	if (clubs){ // clubs
 		ctx.fillText(clubs[players[playerID].club].name, 10, 630);

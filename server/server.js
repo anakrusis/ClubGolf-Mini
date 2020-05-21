@@ -50,14 +50,21 @@ class Tree {
 		this.height = 16;
 		this.width = 16;
 		this.shadow = false;
+		this.collide = true;
 	}
 }
 
-for (i = 0; i < config.max_trees; i++){
+var flag = new Tree(holeX + 4, holeY + 4);
+flag.collide = false; flag.texture = 3;
+flag.width = 4; flag.height = 8;
+map.trees.push( flag );
+
+for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees exclusively on Out of Bounds area
 	treeX = Math.round ( Math.random() * map.width  * 8 );
 	treeY = Math.round ( Math.random() * map.height * 8 );
 	tree = new Tree (treeX, treeY) ;
 	tree.height = Math.random() * 20 + 12;
+	tree.width = tree.height;
 	
 	index = getTileIndex(treeX, treeY);
 	if (mapData[index] == 1){
@@ -67,24 +74,42 @@ for (i = 0; i < config.max_trees; i++){
 
 var onTurnFinish = function() {
 
-	players[currentPlayer].shot++;// incrementing the old players shot first.
-	var thisBall = players[currentPlayer].ball;
-	index = getTileIndex(thisBall.x, thisBall.y);
-	
-	if (mapData[index] == 1){
-		status = 0; // out of bounds
-	}else if (mapData[index] == 19){
-		status = 1; // rough
-	}else if (mapData[index] == 23 || mapData[index] == 21){
-		status = 2; // fairway
-	}else if (mapData[index] == 27){
-		status = 3; // green
-	}else if (mapData[index] == 25){
-		status = 4; // hole
-	}else{
-		status = 5; // misc
+	if (!players[currentPlayer].done){
+		players[currentPlayer].shot++;// incrementing the old players shot first, if not the final shot
 	}
+	
+	var thisBall = players[currentPlayer].ball; //tile handler when ball lands
+	index = getTileIndex(thisBall.x, thisBall.y);
+	switch (mapData[index]){
+		case 1:
+			status = 0; // out of bounds
+			break;
+			
+		case 19:
+			status = 1; // rough
+			break;
 		
+		case 21:
+		case 23:
+			status = 2; // fairway
+			break;
+		
+		case 26: // all these different green tiles (this isn't even all of them) will probably be scrapped
+		case 27:
+		case 28:
+		case 42:
+		case 43:
+			status = 3; // green
+			break;
+			
+		case 25:
+			status = 4; // hole
+			break;
+			
+		default:
+			status = 5; // misc
+	}
+	
 	io.emit("playerUpdate", players[currentPlayer], currentPlayer);
 	io.emit("turnFinish", currentPlayer, status);
 	

@@ -8,7 +8,8 @@ tileset = new Image(); tileset.src = "tileset.png";
 texture_PLAYER = new Image(); texture_PLAYER.src = "player.png";
 texture_TREE = new Image(); texture_TREE.src = "tree.png";
 texture_BALL = new Image(); texture_BALL.src = "ball.png";
-textures = [texture_PLAYER, texture_TREE, texture_BALL];
+texture_FLAG = new Image(); texture_FLAG.src = "flag.png";
+textures = [texture_PLAYER, texture_TREE, texture_BALL, texture_FLAG];
 
 statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Unknown Ground Type!"];
 
