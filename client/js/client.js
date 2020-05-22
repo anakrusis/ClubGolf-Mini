@@ -54,6 +54,10 @@ var startClient = function(){
 	addEventListener("mousewheel", function (e){
 		delta = e.wheelDelta;
 	}, false);
+	
+	addEventListener("DOMMouseScroll", function (e){
+		delta = e.detail * -50;
+	}, false);
 
 	var update = function (modifier) {
 		//cameraX = players
@@ -259,4 +263,6 @@ var server_connect = function(){
 		betweenTurnTimer = BETWEEN_TURN_TIME;
 		turnStatus = status;
 	});
+	
+	soundTest();
 }

@@ -1,35 +1,42 @@
-var flat_factor = 10
+var flat_factor = 12
 var horizon_scanline = 224
 var renderAngle;
 
+var mapOrX = 320; // map canvas origin x/y
+var mapOrY = 480;
+var canvOrX = 320; // main canvas origin/x/y
+var canvOrY = 320;
+var canvW = 640;
+var canvH = 640;
+
 var rotatedX = function(x, y){
-	tx = tra_x( x ) - 320;
-	ty = tra_y( y ) - 320;
-	return rot_x(renderAngle, tx, ty) + 320; 
+	tx = tra_x( x ) - mapOrX;
+	ty = tra_y_o( y, mapOrY ) - mapOrY;
+	return rot_x(renderAngle, tx, ty) + mapOrX; 
 	
 }
 
 var rotatedY = function(x, y){
-	tx = tra_x( x ) - 320;
-	ty = tra_y( y ) - 320;
-	return rot_y(renderAngle, tx, ty) + 320;
+	tx = tra_x( x ) - mapOrX;
+	ty = tra_y_o( y, mapOrY ) - mapOrY;
+	return rot_y(renderAngle, tx, ty) + mapOrY;
 }
 
 var scaledX = function (x, y){
 
 	rx = rotatedX(x, y); ry = rotatedY(x, y);
 
-	line = (640 * ry) / (-ry + 640) // This is the algebraic inverse of the map drawing code
-	scale = 1 + (line/640)
-	return (rx - 320) * scale + 320
+	line = (canvH * ry) / (-ry + canvH) // This is the algebraic inverse of the map drawing code
+	scale = 1 + (line / canvH)
+	return (rx - canvOrX) * scale + canvOrX
 }
 
 var scaledY = function (x, y){
 	
 	rx = rotatedX(x, y); ry = rotatedY(x, y);
 
-	line = (640 * ry) / (-ry + 640)
-	scale = 1 + (line/640)
+	line = (canvH * ry) / (-ry + canvH)
+	scale = 1 + (line / canvH)
 	return horizon_scanline + line / flat_factor
 }
 
@@ -87,7 +94,7 @@ var render = function () {
 	mapCtx.fillStyle = "#006600";
 	mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
 	
-	mapCtx.translate(320, 320);
+	mapCtx.translate(mapOrX, mapOrY);
 	mapCtx.rotate(renderAngle);
 	
 	entityRenderList = [];
@@ -101,8 +108,8 @@ var render = function () {
 			sourcex = (tileVal % 16) * 8;
 			sourcey = Math.floor(tileVal / 16) * 8;
 			
-			destx = tra_x((i % map.width) * 8) - 320;
-			desty = tra_y(Math.floor(i / map.width) * 8) - 320;
+			destx = tra_x((i % map.width) * 8) - mapOrX;
+			desty = tra_y_o(Math.floor(i / map.width) * 8, mapOrY) - mapOrY;
 			
 			mapCtx.drawImage(tileset,sourcex,sourcey,8,8,destx,desty,8*cam_zoom,8*cam_zoom)
 		}	
@@ -126,10 +133,9 @@ var render = function () {
 	}
 	
 	ctx.beginPath(); // crosshair
-	ctx.moveTo(320, 280);
+	ctx.moveTo(320, 380);
 	ctx.lineTo(320, horizon_scanline);
 	ctx.stroke();
-	
 
 	for (var i = 0; i < players.length; i++){
 	
