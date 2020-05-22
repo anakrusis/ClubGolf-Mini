@@ -9,6 +9,8 @@ var canvOrY = 320;
 var canvW = 640;
 var canvH = 640;
 
+var METER_SCALE = 4;
+
 var rotatedX = function(x, y){
 	tx = tra_x( x ) - mapOrX;
 	ty = tra_y_o( y, mapOrY ) - mapOrY;
@@ -182,6 +184,17 @@ var render = function () {
 	
 	if (clubs){ // clubs
 		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
+	}
+	
+	if (powerMeter != -1){ // power meter
+		//ctx.fillText(powerMeter, 400, 400)
+		
+		ctx.drawImage(texture_METER, 0, 0, // source x, y
+		32 * powerMeter, 8, // source width, height
+		280, 600, // desination x, y
+		METER_SCALE * 32 * powerMeter, METER_SCALE * 8); // destination width, height
+		
+		ctx.drawImage(texture_METER_OUTLINE, 280, 600, METER_SCALE * 32, METER_SCALE * 8);
 	}
 	
 	if (betweenTurnTimer > 0){

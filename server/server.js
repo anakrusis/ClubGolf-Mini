@@ -123,17 +123,17 @@ var onTurnStart = function() {
 	if (next != -1){
 		currentPlayer = next;
 		console.log(players[currentPlayer].name + "'s turn! (ID: " + players[currentPlayer].id + ")");
+		
+		var thisBall = players[currentPlayer].ball
+		thisBall.dir = Math.atan2(holeY + 4 - thisBall.y, holeX + 4 - thisBall.x);
+		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+		io.emit("turnStart", currentPlayer);
 	
 	} else {
 		onCourseEnd();
 	}
 	ballActive = false;
 	betweenTurnTimer = -1;
-	
-	var thisBall = players[currentPlayer].ball
-	thisBall.dir = Math.atan2(holeY + 4 - thisBall.y, holeX + 4 - thisBall.x);
-	io.emit("playerUpdate", players[currentPlayer], currentPlayer);
-	io.emit("turnStart", currentPlayer);
 }
 
 var onCourseEnd = function() {
@@ -143,6 +143,8 @@ var onCourseEnd = function() {
 	for (i = 0; i < players.length; i++){
 		console.log( players[i].name + ": " + players[i].shot);
 	}
+	
+	io.emit("courseFinish");
 }
 
 var update = function () {
@@ -195,11 +197,11 @@ setInterval(()=> {update()}, 50);
 
 io.on('connection', function (socket) {
 
-	socket.on("ballHit", function (playerID, ball) {
+	socket.on("ballHit", function (playerID, ball, powerMeter) {
 	
 		if (!ballActive && playerID == currentPlayer){
 			currentClub = players[playerID].club;
-			ball.velocity = clubs.clubs[currentClub].vel;
+			ball.velocity = clubs.clubs[currentClub].vel * powerMeter;
 			players[playerID].ball = ball;
 			io.emit("ballUpdate", playerID, ball);
 			ballActive = true;

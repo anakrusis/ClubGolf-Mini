@@ -9,6 +9,8 @@ texture_PLAYER = new Image(); texture_PLAYER.src = "player.png";
 texture_TREE = new Image(); texture_TREE.src = "tree.png";
 texture_BALL = new Image(); texture_BALL.src = "ball.png";
 texture_FLAG = new Image(); texture_FLAG.src = "flag.png";
+texture_METER = new Image(); texture_METER.src = "meter.png";
+texture_METER_OUTLINE = new Image(); texture_METER_OUTLINE.src = "meter_outline.png";
 textures = [texture_PLAYER, texture_TREE, texture_BALL, texture_FLAG];
 
 statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Unknown Ground Type!"];
@@ -22,6 +24,9 @@ var connectTimer = 0;
 var betweenTurnTimer = 0;
 var BETWEEN_TURN_TIME = 96;
 var turnStatus;
+
+var powerMeter = -1;
+var powerMeterCoeff;
 
 players = [];
 playerID = -1 // Your player ID
@@ -136,15 +141,37 @@ var startClient = function(){
 		}
 		
 		if (32 in keysDown){ // space
+			
 			if (ball_unlock && players[playerID] && playerID == currentPlayer){
-				socket.emit("ballHit", playerID, players[playerID].ball);
-				ball_unlock = false
+				if (powerMeter == -1){
+					powerMeter = 0.01;
+					powerMeterCoeff = 1.6;
+				}else{
+					powerMeter *= powerMeterCoeff;
+					powerMeter = Math.max(0, powerMeter);
+					powerMeter = Math.min(1, powerMeter);
+					
+					if (powerMeter == 1){
+						powerMeterCoeff = 1 / powerMeterCoeff;
+					} else if (powerMeter < 0.01){
+						powerMeterCoeff = 1 / powerMeterCoeff;
+					}
+				}
+			}
+			
+		} else {
+			if (powerMeter != -1){
+				if (ball_unlock && players[playerID] && playerID == currentPlayer){
+					socket.emit("ballHit", playerID, players[playerID].ball, powerMeter);
+					ball_unlock = false
+				}
 			}
 		}
 		//cam_dir = Math.round(cam_dir * 10)/10
 		
 		cam_zoom += (0.002 * delta)
-		cam_zoom = Math.max(1, cam_zoom)
+		cam_zoom = Math.max(0.5, cam_zoom)
+		cam_zoom = Math.min(3, cam_zoom)
 		
 		if (players[currentPlayer]){ // camera spectates the player who is currently up
 			cam_dir = players[currentPlayer].ball.dir;
@@ -255,6 +282,7 @@ var server_connect = function(){
 		currentPlayer = playerCurrent;
 		if (playerCurrent == playerID){
 			ball_unlock = true;
+			powerMeter = -1;
 		}
 		betweenTurnTimer = 0;
 	});
@@ -262,6 +290,10 @@ var server_connect = function(){
 	socket.on("turnFinish", function ( playerCurrent, status ){
 		betweenTurnTimer = BETWEEN_TURN_TIME;
 		turnStatus = status;
+	});
+	
+	socket.on("courseFinish", function() {
+		ball_unlock = false;
 	});
 	
 	soundTest();
