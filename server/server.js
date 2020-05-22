@@ -229,11 +229,8 @@ io.on('connection', function (socket) {
 	});
 	
 	socket.on("playerUpdateRequest", function (playerUpdating, playerID) {
-		//if (playerID == currentPlayer){
-		if (true){
-			players[playerID] = playerUpdating;
-			io.emit("playerUpdate", playerUpdating, playerID);
-		}
+		players[playerID] = playerUpdating;
+		io.emit("playerUpdate", playerUpdating, playerID);
 	});
 	
 	socket.on("ballUpdateRequest", function (playerID, ball) {
@@ -243,16 +240,18 @@ io.on('connection', function (socket) {
 	socket.on("disconnect", function () {
 		playerLeaving = getPlayerFromSocket(socket)
 		
-		console.log( playerLeaving.name + " has left the server (ID: " + playerLeaving.id + ")")
-		players.splice(playerLeaving.id, 1)
-		for (i = playerLeaving.id; i < players.length; i++){
-			players[i].id--;
+		if (playerLeaving != 1){
+			console.log( playerLeaving.name + " has left the server (ID: " + playerLeaving.id + ")")
+			players.splice(playerLeaving.id, 1)
+			for (i = playerLeaving.id; i < players.length; i++){
+				players[i].id--;
+			}
+			io.emit("playerLeave", playerLeaving.id, players)
+			
+			if (playerLeaving.id == currentPlayer){
+				onTurnStart();
+			}
 		}
-		if (currentPlayer >= playerLeaving.id){
-			currentPlayer--;
-			currentPlayer = Math.max(currentPlayer, 0)
-		}
-		io.emit("playerLeave", playerLeaving.id, players)
 	});
 });
 

@@ -13,6 +13,8 @@ texture_METER = new Image(); texture_METER.src = "meter.png";
 texture_METER_OUTLINE = new Image(); texture_METER_OUTLINE.src = "meter_outline.png";
 textures = [texture_PLAYER, texture_TREE, texture_BALL, texture_FLAG];
 
+var MAX_FPS = 60;
+
 statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Unknown Ground Type!"];
 
 var keysDown = {};
@@ -40,7 +42,7 @@ var startClient = function(){
 	// Main canvas for rendering
 	canvas = document.querySelector("#Canvas");
 	//canvas.tabindex = 0;
-	//canvas.setAttribute('style', "padding-left: 0;padding-right: 0;margin-left: auto;margin-right: auto;display: block;width: 425;");
+	canvas.style = "position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; margin: auto;"
 	ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
 
@@ -148,6 +150,7 @@ var startClient = function(){
 					powerMeterCoeff = 1.6;
 				}else{
 					powerMeter *= powerMeterCoeff;
+			
 					powerMeter = Math.max(0, powerMeter);
 					powerMeter = Math.min(1, powerMeter);
 					
@@ -198,19 +201,23 @@ var startClient = function(){
 
 	// main loop
 	var main = function () {
-		var now = Date.now();
+		var now = performance.now();
 		var delta = now - then;
+	
+		if (delta > fpsInterval){
+			then = now - (delta % fpsInterval);
+			
+			update(delta);
+			render();
+		}
 		
-		update(delta / 1000);
-		render();
-		
-		then = now;
 		requestAnimationFrame(main);
 	};
 	var w = window;
 	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
 
-	var then = Date.now();
+	var then = performance.now();
+	var fpsInterval = 1000 / MAX_FPS;
 	main();
 }
 

@@ -15,13 +15,13 @@
 		
 		{
 			"name":"Wood",
-			"vel":"12",
+			"vel":"24",
 			"lift":"4"
 		},
 		
 		{
 			"name":"Driver",
-			"vel":"24",
+			"vel":"48",
 			"lift":"6"
 		}
 
