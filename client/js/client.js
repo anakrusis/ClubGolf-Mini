@@ -147,7 +147,7 @@ var startClient = function(){
 			if (ball_unlock && players[playerID] && playerID == currentPlayer){
 				if (powerMeter == -1){
 					powerMeter = 0.01;
-					powerMeterCoeff = 1.6;
+					powerMeterCoeff = 1.2;
 				}else{
 					powerMeter *= powerMeterCoeff;
 			
@@ -170,9 +170,12 @@ var startClient = function(){
 				}
 			}
 		}
-		//cam_dir = Math.round(cam_dir * 10)/10
+		cam_zoomOld = cam_zoom; // storing old camera values pre-change
+		cam_dirOld = cam_dir;
+		cam_xOld = cam_x;
+		cam_yOld = cam_y;
 		
-		cam_zoom += (0.002 * delta)
+		cam_zoom += (0.002 * delta) // applying camera changes
 		cam_zoom = Math.max(0.5, cam_zoom)
 		cam_zoom = Math.min(3, cam_zoom)
 		
@@ -180,6 +183,10 @@ var startClient = function(){
 			cam_dir = players[currentPlayer].ball.dir;
 			cam_x = players[currentPlayer].ball.x;
 			cam_y = players[currentPlayer].ball.y;
+		}
+		
+		if (cam_zoomOld != cam_zoom || cam_dirOld != cam_dir || cam_xOld != cam_x || cam_yOld != cam_y){
+			redrawFlag = true;
 		}
 		
 		delta = 0

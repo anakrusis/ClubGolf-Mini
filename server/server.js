@@ -130,7 +130,11 @@ var onTurnStart = function() {
 		io.emit("turnStart", currentPlayer);
 	
 	} else {
-		onCourseEnd();
+		if (players.length == 0){ 
+			// unique handling for empty server? naaaa.... just waiting for someone to join
+		}else{
+			onCourseEnd();
+		}
 	}
 	ballActive = false;
 	betweenTurnTimer = -1;
@@ -155,11 +159,11 @@ var update = function () {
 	
 		ball.velocity /= 1.1; //friction
 	
-		if (ball.velocity < 0.001){
+		if (ball.velocity < 0.001){ // velocity cutoff
 			ball.velocity = 0;
 		}
 		
-		if (!ballActive){
+		if (!ballActive){ // when the ball is at a standstill, the player entity moves around it to aim
 			x_add = 8 * Math.cos(ball.dir + Math.PI / 1.2);
 			y_add = 8 * Math.sin(ball.dir + Math.PI / 1.2);
 			players[currentPlayer].x = ball.x + x_add;
@@ -168,16 +172,17 @@ var update = function () {
 	
 		if (ballActive && ball.velocity < 1) {
 			index = getTileIndex(ball.x, ball.y);
-			if (mapData[index] == 25){
+			
+			if (mapData[index] == 25){ // hole 
+			
 				players[currentPlayer].done = true;
-				//io.emit("playerUpdate", players[currentPlayer], currentPlayer);
 				console.log(players[currentPlayer].name + " is done!");
 				ball.velocity = 0;
 			}
 		}
 		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
 		
-		if (ball.velocity == 0){ // on Shot Finish
+		if (ball.velocity == 0){ // shot is considered finished when the ball has 0 velocity
 			if (ballActive){
 				onTurnFinish();
 			}

@@ -1,5 +1,6 @@
-var flat_factor = 12
-var horizon_scanline = 224
+var flat_factor = 12;
+var horizon_scanline = 224;
+var scanline_size = 2;
 var renderAngle;
 
 var mapOrX = 320; // map canvas origin x/y
@@ -8,8 +9,12 @@ var canvOrX = 320; // main canvas origin/x/y
 var canvOrY = 320;
 var canvW = 640;
 var canvH = 640;
+var mapCanvW = 640;
+var mapCanvH = 640;
 
 var METER_SCALE = 4;
+
+var redrawFlag = true; // this is a flag that gets set off whenever there is a change in perspective requiring a map redraw
 
 var rotatedX = function(x, y){
 	tx = tra_x( x ) - mapOrX;
@@ -59,10 +64,6 @@ var renderEntity = function (entity, x_offset, y_offset) {
 	sx -= (entity.width / 2) * cam_zoom * scale;
 	sy -= entity.height * cam_zoom * scale; // To draw at the bottom left corner
 	
-	if (entity.name == "Ball"){
-		mapCtx.drawImage(textures[2], rx, ry, 2*cam_zoom, 2*cam_zoom)
-	}
-	
 	if (sy > horizon_scanline - ( entity.height * cam_zoom * scale)){ // Culling past the horizon
 	
 		// the real drawing
@@ -87,21 +88,22 @@ var render = function () {
 	renderAngle = 2 * Math.PI - cam_dir - Math.PI / 2
 
 	// canvas clear and initial translation
-	ctx.clearRect(0,0,canvas.width,canvas.height)
 	ctx.fillStyle = "#7FC9FF";
 	//ctx.fillStyle = "#FF00FF"; // deastl mode
 	ctx.fillRect(0,0,canvas.width,canvas.height);
 	
-	mapCtx.clearRect(0,0,mapCanvas.width,mapCanvas.height)
-	mapCtx.fillStyle = "#006600";
-	mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
-	
-	mapCtx.translate(mapOrX, mapOrY);
-	mapCtx.rotate(renderAngle);
-	
+
 	entityRenderList = [];
 	
-	if (map) { // map render (top-down for now, mode7 later)
+	if (map && redrawFlag) { // map render (top-down here, mode7 afterwards)
+	
+		mapCtx.clearRect(0,0,mapCanvas.width,mapCanvas.height)
+		mapCtx.fillStyle = "#006600";
+		mapCtx.fillRect(0,0,mapCanvas.width,mapCanvas.height);
+		
+		mapCtx.translate(mapOrX, mapOrY);
+		mapCtx.rotate(renderAngle);
+	
 		data = map.layers[0].data
 		
 		for (var i = 0; i < data.length; i++){
@@ -109,17 +111,19 @@ var render = function () {
 		
 			sourcex = (tileVal % 16) * 8;
 			sourcey = Math.floor(tileVal / 16) * 8;
+			if (sourcex >= 0 && sourcey >= 0 && sourcex < mapCanvW && sourcey < mapCanvH){	
 			
-			destx = tra_x((i % map.width) * 8) - mapOrX;
-			desty = tra_y_o(Math.floor(i / map.width) * 8, mapOrY) - mapOrY;
-			
-			mapCtx.drawImage(tileset,sourcex,sourcey,8,8,destx,desty,8*cam_zoom,8*cam_zoom)
-		}	
+				destx = tra_x((i % map.width) * 8) - mapOrX;
+				desty = tra_y_o(Math.floor(i / map.width) * 8, mapOrY) - mapOrY;
+				mapCtx.drawImage(tileset,sourcex,sourcey,8,8,destx,desty,8*cam_zoom,8*cam_zoom)
+			}
+		}
 		
+		redrawFlag = false;
+		mapCtx.setTransform(1, 0, 0, 1, 0, 0);
 	}
-	mapCtx.setTransform(1, 0, 0, 1, 0, 0);
 
-	for (i = 0; i < 640 * flat_factor; i+=flat_factor){
+	for (i = 0; i < 640 * flat_factor; i+=flat_factor * scanline_size){ // here is the mode7 style transform from mapcanvas -> canvas
 	
 		scale = 1 + (i/640)
 		sourceY = Math.round(i/scale);
@@ -129,7 +133,7 @@ var render = function () {
 		
 		320 - (320 * scale) , horizon_scanline + i / flat_factor, // destination x y
 
-		640 * scale, 1); // destination width height
+		640 * scale, scanline_size); // destination width height
 
 	//	ctx.drawImage(mapCanvas, 0, i, 640, 1, 0, i, 640, 1); // top down plain scanline render
 	}
