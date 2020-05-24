@@ -112,18 +112,18 @@ var startClient = function(){
 			if (65 in keysDown || 68 in keysDown){
 			
 				if (65 in keysDown){
-					players[playerID].ball.dir -= Math.PI / 64;
+					players[playerID].ball.dir -= Math.PI / 128;
 				}
 				if (68 in keysDown){
-					players[playerID].ball.dir += Math.PI / 64;
+					players[playerID].ball.dir += Math.PI / 128;
 				}
 				socket.emit("playerUpdateRequest", players[playerID], playerID);
 				
 				if (65 in keysDown){
-					players[playerID].ball.dir += Math.PI / 64;
+					players[playerID].ball.dir += Math.PI / 128;
 				}
 				if (68 in keysDown){
-					players[playerID].ball.dir -= Math.PI / 64;
+					players[playerID].ball.dir -= Math.PI / 128;
 				}
 			}
 		}
@@ -204,6 +204,8 @@ var startClient = function(){
 		
 		betweenTurnTimer--;
 		betweenTurnTimer = Math.max(0, betweenTurnTimer);
+		
+		soundPlayerTick();
 	}
 
 	// main loop
@@ -310,5 +312,5 @@ var server_connect = function(){
 		ball_unlock = false;
 	});
 	
-	soundTest();
+	soundPlayerInit();
 }

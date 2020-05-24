@@ -4,6 +4,8 @@ var io = require('socket.io')(config.port);
 
 var clubs = require('./clubs.json');
 var map = require('./map.json');
+var song = require("./song.json");
+
 map.trees = []
 map.par = 4
 
