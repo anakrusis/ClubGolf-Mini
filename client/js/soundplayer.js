@@ -1,10 +1,12 @@
-FREQ_TBL = [16.35, 17.32, 18.36, 19.45, 20.60, 21.83, 23.12, 24.50, 25.95, 27.50, 29.13, 30.87];
+FREQ_TBL = [16.352, 17.324, 18.354, 19.445, 20.601, 21.826, 23.124, 24.500, 25.956, 27.500, 29.135, 30.867];
 CHANNELS_AMT = 4;
 
 song = {
 	speed: 2,
 	ch: [
-		" 4defg8e4cd8r"
+		" 4--a#r+frar+drcr-grer-ar++",
+		" 32dc",
+		" 32fe"
 	]
 }
 soundInitted = false;
@@ -125,7 +127,7 @@ var soundPlayerTick = function () {
 							oscs[i].frequency.setValueAtTime(freq, audioCtx.currentTime);
 						}
 						
-						noteTicks[i] = lengths[i];
+						noteTicks[i] = lengths[i] - 1;
 					
 						break;
 					}
