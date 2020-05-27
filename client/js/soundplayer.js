@@ -38,13 +38,16 @@ var soundPlayerInit = function () {
 	}
 	
 	soundInitted = true;
-	loadSong(song);
+	loadSong(song_MAIN);
 }
 
 var loadSong = function (song) {
 	for (i = 0; i < CHANNELS_AMT; i++){ // init blank channels
 		loadedSong.ch[i] = { pitches:[], times:[] };
 		loadedSong.currentIndex[i] = 0;
+		
+		loadedSong.time = 0;
+		oscs[i].frequency.setValueAtTime(0, audioCtx.currentTime); // pauses playback while sounds are loading
 	}
 	
 	for (i = 0; i < CHANNELS_AMT; i++){

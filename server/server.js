@@ -16,7 +16,7 @@ var mapData = map.layers[0].data
 
 var ballActive = false;
 var betweenTurnTimer = -1;
-var BETWEEN_TURN_TIME = 48;
+var BETWEEN_TURN_TIME = 56;
 
 // getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
 var startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
@@ -211,6 +211,7 @@ io.on('connection', function (socket) {
 			players[playerID].ball = ball;
 			io.emit("ballUpdate", playerID, ball);
 			ballActive = true;
+			io.emit("ballHit");
 		}
 
 	});

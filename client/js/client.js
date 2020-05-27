@@ -210,16 +210,13 @@ var startClient = function(){
 
 	// main loop
 	var main = function () {
-		var now = performance.now();
+		var now = Date.now();
 		var delta = now - then;
-	
-		if (delta > fpsInterval){
-			then = now - (delta % fpsInterval);
-			
-			update(delta);
-			render();
-		}
 		
+		update(delta / 1000);
+		render();
+		
+		then = now;
 		requestAnimationFrame(main);
 	};
 	var w = window;
@@ -294,6 +291,10 @@ var server_connect = function(){
 			}	
 		}
 	});
+	socket.on("ballHit", function (){
+		loadSong(sfx_HIT);
+	});
+	
 	socket.on("turnStart", function( playerCurrent ) {
 		currentPlayer = playerCurrent;
 		if (playerCurrent == playerID){
@@ -301,11 +302,18 @@ var server_connect = function(){
 			powerMeter = -1;
 		}
 		betweenTurnTimer = 0;
+		loadSong(song_MAIN);
 	});
 	
 	socket.on("turnFinish", function ( playerCurrent, status ){
 		betweenTurnTimer = BETWEEN_TURN_TIME;
 		turnStatus = status;
+		if (status == 4){ // ball in hole sfx
+			loadSong(sfx_WIN);
+		}else{
+			loadSong(sfx_GOOD); // generic sfx
+		}
+		
 	});
 	
 	socket.on("courseFinish", function() {

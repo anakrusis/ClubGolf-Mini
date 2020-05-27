@@ -20,7 +20,7 @@ durations = [ ]
 pitches =   [ ] # midi note values, for matching note_on and note_offs
 available = [ ]
 
-DIVISOR = 15
+DIVISOR = 10
 
 def main():
 
@@ -44,7 +44,7 @@ def main():
                 
                 releaseTime[currentChannel] = trackTime
                 duration = releaseTime[currentChannel] - onsetTime[currentChannel]
-                duration = int(duration/10)
+                duration = int(duration/DIVISOR)
                 
                 channels[currentChannel] += str(duration)
 
@@ -72,10 +72,10 @@ def main():
 
                 onsetTime[currentChannel] = trackTime
                 duration = onsetTime[currentChannel] - releaseTime[currentChannel]
-                duration = int(duration/10)
+                duration = int(duration/DIVISOR)
 
                 if (releaseTime[currentChannel] == 0): # Special case for the beginning of midis: 140ticks or 14 adjusted of blank space at beginning
-                    duration -= 14
+                    duration -= int(140/DIVISOR)
                 
                 channels[currentChannel] += str(duration)
                 channels[currentChannel] += "r"

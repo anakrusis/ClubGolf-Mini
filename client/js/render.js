@@ -4,7 +4,7 @@ var scanline_size = 2;
 var renderAngle;
 
 var mapOrX = 320; // map canvas origin x/y
-var mapOrY = 480;
+var mapOrY = 520;
 var canvOrX = 320; // main canvas origin/x/y
 var canvOrY = 320;
 var canvW = 640;
@@ -139,8 +139,8 @@ var render = function () {
 	}
 	
 	ctx.beginPath(); // crosshair
-	ctx.moveTo(320, 380);
-	ctx.lineTo(320, horizon_scanline);
+	ctx.moveTo(320, 450);
+	ctx.lineTo(320, horizon_scanline + 100);
 	ctx.stroke();
 
 	for (var i = 0; i < players.length; i++){
