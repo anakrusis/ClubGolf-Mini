@@ -37,6 +37,7 @@ var currentPlayer; // The current player who is hitting the ball right now
 cam_zoom = 2
 cam_unlock = false // can the camera move freely yes or no
 ball_unlock = true // can you swing and hit the ball?
+results_screen = false
 
 var startClient = function(){
 	// Main canvas for rendering
@@ -318,6 +319,8 @@ var server_connect = function(){
 	
 	socket.on("courseFinish", function() {
 		ball_unlock = false;
+		results_screen = true;
+		loadSong(song_RESULTS)
 	});
 	
 	soundPlayerInit();

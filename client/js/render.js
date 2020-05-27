@@ -210,6 +210,22 @@ var render = function () {
 		ctx.strokeText(statusStrings[turnStatus], 320, 320);
 	}
 	
+	if (results_screen){
+		ctx.fillStyle = "rgb(255, 255, 255)";
+		ctx.font = "bold 60px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText("Results", 320, 140);
+		
+		for (i=0; i<players.length; i++){
+			score = players[i].shot - map.par
+			if (score > 0){ score = "+" + score }
+			ctx.fillText(players[i].name + ": " + score, 320, 200 + i * 68);
+		}
+		
+		ctx.fillStyle = "rgb(0, 0, 0)";
+		ctx.strokeText("Results", 320, 140);
+	}
+	
 	if (socket){
 		if (!socket.connected){
 			ctx.fillText("Can't connect to server!", 200, 320)

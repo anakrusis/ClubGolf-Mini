@@ -75,7 +75,7 @@ def main():
                 duration = int(duration/DIVISOR)
 
                 if (releaseTime[currentChannel] == 0): # Special case for the beginning of midis: 140ticks or 14 adjusted of blank space at beginning
-                    duration -= int(140/DIVISOR)
+                    duration -= int(260/DIVISOR)
                 
                 channels[currentChannel] += str(duration)
                 channels[currentChannel] += "r"
@@ -86,7 +86,7 @@ def main():
     writeFile()
 
 def writeFile():
-    file_out.write("var song = {\nspeed:2,\nch:[")
+    file_out.write("var song = {\nspeed:2,\nloop:true,\nch:[")
     for i in range( len(channels) ):
         file_out.write('\n"' + channels[i] + '0r",')
     file_out.write("]}")

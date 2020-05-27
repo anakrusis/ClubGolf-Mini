@@ -1,5 +1,5 @@
 FREQ_TBL = [16.352, 17.324, 18.354, 19.445, 20.601, 21.826, 23.124, 24.500, 25.956, 27.500, 29.135, 30.867];
-CHANNELS_AMT = 7;
+CHANNELS_AMT = 11;
 
 /* song = {
 speed:2,
@@ -47,6 +47,8 @@ var loadSong = function (song) {
 		loadedSong.currentIndex[i] = 0;
 		
 		loadedSong.time = 0;
+		loadedSong.length = 0;
+		loadedSong.loop = song.loop;
 		oscs[i].frequency.setValueAtTime(0, audioCtx.currentTime); // pauses playback while sounds are loading
 	}
 	
@@ -158,7 +160,7 @@ var soundPlayerTick = function () {
 		}
 
 		loadedSong.time++;
-		if (loadedSong.time > loadedSong.length){
+		if (loadedSong.time > loadedSong.length && loadedSong.loop){
 			loadedSong.time = 0;
 		}
 	}
