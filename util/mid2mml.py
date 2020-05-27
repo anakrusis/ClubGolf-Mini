@@ -13,8 +13,8 @@ NOTES = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"]
 
 channels =  [ ] # the concatenated strings of mml to be outputted
 octaves =   [ ]
-noteTime =  [ ] # the tick of note onset
-lastTime =  [ ] # tick of the last note onset
+onsetTime =  [ ] # the tick of note onset
+releaseTime =[ ] # tick of note release
                 # note duration is noteTime-lastTime
 durations = [ ]
 pitches =   [ ] # midi note values, for matching note_on and note_offs
@@ -28,48 +28,26 @@ def main():
     trackTime = 0
     newChannel()
 
-    currentDuration = 0;
-    lastDuration = -1;
     currentChannel = -1;
     
     for msg in track:
         if (msg.type == "note_on"):
-
             trackTime += msg.time
 
-            if (msg.velocity == 0): # Note release
-                currentChannel = findChannel(msg.note)
-                pitches[currentChannel] = 0
-                available[currentChannel] = True
-                
-            else: # Note onset
-                
-                note = (msg.note % 12)
-                octave = math.floor(msg.note / 12) - 1
-
-                currentChannel = nearestChannel(octave)
-                if (currentChannel == -1):
-                    newChannel()
-                    currentChannel = len(channels)-1
-                    
-                #print("Channel: " + str(currentChannel))
-                pitches[currentChannel] = msg.note
-                available[currentChannel] = False
-
-            noteTime[currentChannel] = trackTime
-            currentDuration = noteTime[currentChannel] - lastTime[currentChannel]
-
-            if currentDuration != durations[currentChannel]:
-                channels[currentChannel] += str( int( currentDuration / 10 ))
-                #channels[currentChannel] += str( 6 )
-                durations[currentChannel] = currentDuration
+            note = (msg.note % 12)
+            octave = math.floor(msg.note / 12) - 1
             
-            if (msg.velocity == 0): # On note release, we write a note
-                octave = math.floor(lastMsg.note / 12) - 1
-                note = (lastMsg.note % 12)
-
-                print("Note: " + NOTES[note] + " Octave: " + str(octave))
+            if (msg.velocity == 0): # Note release: write the note length first, then octave changes, finally the note name.
+ 
+                currentChannel = findChannel(msg.note)
+                print("Note " + NOTES[note] + " on Channel " + str(currentChannel))
                 
+                releaseTime[currentChannel] = trackTime
+                duration = releaseTime[currentChannel] - onsetTime[currentChannel]
+                duration = int(duration/10)
+                
+                channels[currentChannel] += str(duration)
+
                 if (octave > octaves[currentChannel]):
                     diff = octave-octaves[currentChannel]
                     channels[currentChannel] += ("+" * diff)
@@ -79,36 +57,54 @@ def main():
                     diff = octaves[currentChannel]-octave
                     channels[currentChannel] += ("-" * diff)
                     octaves[currentChannel] = octave
-
-                channels[currentChannel] += NOTES[note]   
                 
-            else: # On note onset, we write the rest/release                
-                channels[currentChannel] += "r"                
+                channels[currentChannel] += NOTES[note]
 
-            lastTime[currentChannel] = trackTime
-            lastMsg = msg
+                pitches[currentChannel] = -1
+                available[currentChannel] = True
+                
+            else:
+                currentChannel = nearestChannel(octave)
+                if (currentChannel == -1):
+                    newChannel()
+                    currentChannel = len(channels)-1
+                
+
+                onsetTime[currentChannel] = trackTime
+                duration = onsetTime[currentChannel] - releaseTime[currentChannel]
+                duration = int(duration/10)
+
+                if (releaseTime[currentChannel] == 0): # Special case for the beginning of midis: 140ticks or 14 adjusted of blank space at beginning
+                    duration -= 14
+                
+                channels[currentChannel] += str(duration)
+                channels[currentChannel] += "r"
+                
+                pitches[currentChannel] = msg.note
+                available[currentChannel] = False
 
     writeFile()
 
 def writeFile():
-    file_out.write("song = {\nspeed:2,\nch:[")
+    file_out.write("var song = {\nspeed:2,\nch:[")
     for i in range( len(channels) ):
-        file_out.write('\n"' + channels[i] + '",')
+        file_out.write('\n"' + channels[i] + '0r",')
     file_out.write("]}")
 
 def newChannel():
     channels.append(" ")
     octaves.append(4)
     pitches.append(0)
-    noteTime.append(0)
-    lastTime.append(0)
+    onsetTime.append(0)
+    releaseTime.append(0)
     durations.append(0)
     available.append(True)
 
 def findChannel(midiNote):
     for i in range( len(pitches) ):
-        if (pitches[i] == midiNote):
+        if (pitches[i] == midiNote and not available[i]):
             return i
+    return -1                    
 
 # Returns the index of the channel available with the closest octave,
 # to minimize the use of octave commands and save space
@@ -116,9 +112,9 @@ def nearestChannel( currentOctave ):
     diff = 1000
     channel = -1
     for i in range( len(channels) ):
-        #if abs( octaves[i] - currentOctave ) < diff and available[i]:
-        if (available[i]):
-            #diff = abs ( octaves[i] - currentOctave )
+        if abs( octaves[i] - currentOctave ) < diff and available[i]:
+        #if (available[i]):
+            diff = abs ( octaves[i] - currentOctave )
             channel = i
     return channel        
     
