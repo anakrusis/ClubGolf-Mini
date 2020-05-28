@@ -7,5 +7,7 @@ ClubGolf Mini can be run locally or hosted! If playing the game locally, simply 
 
 # Credits
 anakrusis/adggfjggfafafafa: programming, assets 
-krma420: local storage programming and organization
+
+krma420: local storage programming and refactoring
+
 DeaSTL: power meter art
