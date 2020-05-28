@@ -285,6 +285,17 @@ var server_connect = function(){
 		});
 	});
 	
+	socket.on("courseStart", function ( serverPlayers, serverMap ){
+		map = serverMap;
+		players = serverPlayers;
+		playerID = 0;
+		results_screen = false;
+		ball_unlock = true;
+		powerMeter = -1;
+		
+		loadSong(song_MAIN);
+	});
+	
 	socket.on("ballUpdate", function( id, ball ){
 		if (players[id]) {
 			if (ball.velocity != players[id].ball.velocity){

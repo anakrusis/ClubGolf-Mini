@@ -1,34 +1,29 @@
 var config = require('./config.js');
 
 var io = require('socket.io')(config.port);
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  prompt:""
+});
 
 var clubs = require('./clubs.json');
 var map = require('./map.json');
+var mapData = map.layers[0].data
 
-map.trees = []
 map.par = 4
 
 console.log("Starting server...\n") // init server
 
 var players = []
 var currentPlayer = 0;
-var mapData = map.layers[0].data
 
 var ballActive = false;
 var betweenTurnTimer = -1;
 var BETWEEN_TURN_TIME = 56;
-
 var results_screen = false;
-
-// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
-var startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
-var startX = (startTile % map.width) * 8;
-var startY = Math.floor(startTile / map.width) * 8;
-console.log("Start pos.: " + startX + "," + startY);
-var holeTile = mapData.findIndex( function(element, index, array){ return element == 25 });
-var holeX = (holeTile % map.width) * 8;
-var holeY = Math.floor(holeTile / map.width) * 8;
-console.log("Hole pos.: " + holeX + "," + holeY + "\n");
 
 var getTileIndex = function(x, y){
 	x = Math.floor(x / 8); y = Math.floor(y / 8);
@@ -57,23 +52,67 @@ class Tree {
 	}
 }
 
-var flag = new Tree(holeX + 4, holeY + 4);
-flag.collide = false; flag.texture = 3;
-flag.width = 4; flag.height = 8;
-map.trees.push( flag );
-
-for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees exclusively on Out of Bounds area
-	treeX = Math.round ( Math.random() * map.width  * 8 );
-	treeY = Math.round ( Math.random() * map.height * 8 );
-	tree = new Tree (treeX, treeY) ;
-	tree.height = Math.random() * 20 + 12;
-	tree.width = tree.height;
-	
-	index = getTileIndex(treeX, treeY);
-	if (mapData[index] == 1){
-		map.trees.push( tree )
+rl.on('line', (line) => {
+	switch (line.trim()) {
+		case "/list":
+			for (i = 0; i < players.length; i++){
+				console.log ( players[i].name + " (ID: " + players[i].id + ")" )
+			}
+			if (players.length == 0){
+				console.log("No players online!")
+			}
+			break;
+		case "/restart":
+			onCourseStart();
 	}
+});
+
+var onCourseStart = function() {
+	// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
+	startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
+	startX = (startTile % map.width) * 8;
+	startY = Math.floor(startTile / map.width) * 8;
+	console.log("Start pos.: " + startX + "," + startY);
+	holeTile = mapData.findIndex( function(element, index, array){ return element == 25 });
+	holeX = (holeTile % map.width) * 8;
+	holeY = Math.floor(holeTile / map.width) * 8;
+	console.log("Hole pos.: " + holeX + "," + holeY + "\n");
+	
+	currentPlayer = 0;
+	ballActive = false;
+	
+	map.trees = [];
+	
+	var flag = new Tree(holeX + 4, holeY + 4);
+	flag.collide = false; flag.texture = 3;
+	flag.width = 4; flag.height = 8;
+	map.trees.push( flag );
+
+	for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees exclusively on Out of Bounds area
+		treeX = Math.round ( Math.random() * map.width  * 8 );
+		treeY = Math.round ( Math.random() * map.height * 8 );
+		tree = new Tree (treeX, treeY) ;
+		tree.height = Math.random() * 20 + 12;
+		tree.width = tree.height;
+		
+		index = getTileIndex(treeX, treeY);
+		if (mapData[index] == 1){
+			map.trees.push( tree )
+		}
+		
+		ballActive = false;
+		betweenTurnTimer = -1;
+		results_screen = false;
+	}
+	
+	for (i = 0; i < players.length; i++){
+		initPlayer( players[i] );
+	}
+	
+	io.emit("courseStart", players, map);
 }
+
+onCourseStart();
 
 var onTurnFinish = function() {
 
@@ -220,15 +259,8 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on("playerJoinRequest", function (playerJoining) {
-		playerJoining.ball.x = startX + (Math.random() * 32) // initialize player serverside
-		playerJoining.ball.y = startY + (Math.random() * 32)
-		playerJoining.ball.dir = Math.atan2(holeY + 4 - playerJoining.ball.y, holeX + 4 - playerJoining.ball.x);
 		
-		playerJoining.x = startX; 
-		playerJoining.y = startY;
-		
-		playerJoining.id = players.length;
-		
+		initPlayer(playerJoining);
 		players.push(playerJoining);
 		
 		io.emit("playerJoin", playerJoining, players, map, clubs.clubs, currentPlayer);
@@ -281,5 +313,19 @@ var getPlayerFromSocket = function(socket_in){
 		}
 	}
 	return -1;
+}
+
+var initPlayer = function(p){
+	p.ball.x = startX + (Math.random() * 32) // initialize player serverside
+	p.ball.y = startY + (Math.random() * 32)
+	p.ball.dir = Math.atan2(holeY + 4 - p.ball.y, holeX + 4 - p.ball.x);
+	p.ball.velocity = 0;
+		
+	p.x = startX; 
+	p.y = startY;
+		
+	p.done = false;
+	p.shot = 1;
+	p.club = 0;
 }
 
