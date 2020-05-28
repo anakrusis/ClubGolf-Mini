@@ -18,6 +18,8 @@ var ballActive = false;
 var betweenTurnTimer = -1;
 var BETWEEN_TURN_TIME = 56;
 
+var results_screen = false;
+
 // getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
 var startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
 var startX = (startTile % map.width) * 8;
@@ -150,6 +152,7 @@ var onCourseEnd = function() {
 	}
 	
 	io.emit("courseFinish");
+	results_screen = true;
 }
 
 var update = function () {
@@ -217,7 +220,6 @@ io.on('connection', function (socket) {
 	});
 
 	socket.on("playerJoinRequest", function (playerJoining) {
-		
 		playerJoining.ball.x = startX + (Math.random() * 32) // initialize player serverside
 		playerJoining.ball.y = startY + (Math.random() * 32)
 		playerJoining.ball.dir = Math.atan2(holeY + 4 - playerJoining.ball.y, holeX + 4 - playerJoining.ball.x);
@@ -233,6 +235,12 @@ io.on('connection', function (socket) {
 		io.emit("playerUpdate", playerJoining, playerJoining.id);
 		
 		console.log(playerJoining.name + " has joined the server (ID: " + playerJoining.id + ")" )
+		
+		if (results_screen){
+			io.emit("courseFinish");
+		}else{
+
+		}
 	});
 	
 	socket.on("playerUpdateRequest", function (playerUpdating, playerID) {
@@ -245,9 +253,12 @@ io.on('connection', function (socket) {
 	});
 	
 	socket.on("disconnect", function () {
+
 		playerLeaving = getPlayerFromSocket(socket)
-		
-		if (playerLeaving != 1){
+		 // Players will not disappear from the results screen after leaving, if they are finished with the course
+		 // instead players who are done will be removed on course restart
+		 
+		if (playerLeaving != -1 && !playerLeaving.done){
 			console.log( playerLeaving.name + " has left the server (ID: " + playerLeaving.id + ")")
 			players.splice(playerLeaving.id, 1)
 			for (i = playerLeaving.id; i < players.length; i++){
@@ -259,6 +270,7 @@ io.on('connection', function (socket) {
 				onTurnStart();
 			}
 		}
+		
 	});
 });
 

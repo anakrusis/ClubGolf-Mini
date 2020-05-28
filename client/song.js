@@ -27,8 +27,7 @@ speed:2,
 loop:false,
 ch:[
 " 4cdg+cd0r",
-" 4-ab+dab0r",
-" 8--g0r",
+" 4-ab+dab0r"
 ]}
 
 var sfx_WIN = {

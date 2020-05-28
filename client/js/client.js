@@ -213,8 +213,8 @@ var startClient = function(){
 	var main = function () {
 		var now = Date.now();
 		var delta = now - then;
-		
-		update(delta / 1000);
+	
+		update(delta);	
 		render();
 		
 		then = now;
@@ -318,9 +318,11 @@ var server_connect = function(){
 	});
 	
 	socket.on("courseFinish", function() {
-		ball_unlock = false;
-		results_screen = true;
-		loadSong(song_RESULTS)
+		if (!results_screen){
+			ball_unlock = false;
+			results_screen = true;
+			loadSong(song_RESULTS)
+		}
 	});
 	
 	soundPlayerInit();

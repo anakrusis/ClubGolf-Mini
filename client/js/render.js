@@ -211,15 +211,20 @@ var render = function () {
 	}
 	
 	if (results_screen){
+		ctx.fillStyle = "rgba(0,0,0,0.2)"
+		ctx.fillRect(0,0,canvW,canvH)
+	
 		ctx.fillStyle = "rgb(255, 255, 255)";
 		ctx.font = "bold 60px Arial";
 		ctx.textAlign = "center";
 		ctx.fillText("Results", 320, 140);
 		
 		for (i=0; i<players.length; i++){
-			score = players[i].shot - map.par
-			if (score > 0){ score = "+" + score }
-			ctx.fillText(players[i].name + ": " + score, 320, 200 + i * 68);
+			if (players[i].done){
+				score = players[i].shot - map.par
+				if (score > 0){ score = "+" + score }
+				ctx.fillText(players[i].name + ": " + score, 320, 200 + i * 68);
+			}
 		}
 		
 		ctx.fillStyle = "rgb(0, 0, 0)";
