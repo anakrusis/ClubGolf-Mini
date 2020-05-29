@@ -11,6 +11,7 @@ texture_BALL = new Image(); texture_BALL.src = "ball.png";
 texture_FLAG = new Image(); texture_FLAG.src = "flag.png";
 texture_METER = new Image(); texture_METER.src = "meter.png";
 texture_METER_OUTLINE = new Image(); texture_METER_OUTLINE.src = "meter_outline.png";
+texture_SHADOW = new Image(); texture_SHADOW.src = "shadow.png";
 textures = [texture_PLAYER, texture_TREE, texture_BALL, texture_FLAG];
 
 var MAX_FPS = 60;

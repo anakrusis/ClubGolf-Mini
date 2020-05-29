@@ -65,7 +65,14 @@ var renderEntity = function (entity, x_offset, y_offset) {
 	sy -= entity.height * cam_zoom * scale; // To draw at the bottom left corner
 	
 	if (sy > horizon_scanline - ( entity.height * cam_zoom * scale)){ // Culling past the horizon
-	
+		
+		if (entity.shadow && Math.random() > 0.5){
+			ctx.drawImage(texture_SHADOW, sx, sy + entity.height * cam_zoom * scale * 0.95, entity.width * cam_zoom * scale, entity.width / 8 * cam_zoom * scale)	
+		}
+		
+		if (entity.altitude){
+			sy -= (entity.altitude * cam_zoom * scale);
+		}
 		// the real drawing
 		ctx.drawImage(textures[entity.texture], sx, sy, entity.width * cam_zoom * scale, entity.height * cam_zoom * scale)
 		
@@ -190,15 +197,13 @@ var render = function () {
 		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
 	}
 	
-	if (powerMeter != -1){ // power meter
-		//ctx.fillText(powerMeter, 400, 400)
-		
+	if (powerMeter != -1){ // power meter		
 		ctx.drawImage(texture_METER, 0, 0, // source x, y
-		32 * powerMeter, 8, // source width, height
-		280, 600, // desination x, y
-		METER_SCALE * 32 * powerMeter, METER_SCALE * 8); // destination width, height
+		64 * powerMeter, 8, // source width, height
+		320 - (METER_SCALE * 32), 600, // desination x, y
+		METER_SCALE * 64 * powerMeter, METER_SCALE * 8); // destination width, height
 		
-		ctx.drawImage(texture_METER_OUTLINE, 280, 600, METER_SCALE * 32, METER_SCALE * 8);
+		ctx.drawImage(texture_METER_OUTLINE, 320 - (METER_SCALE * 32), 600, METER_SCALE * 64, METER_SCALE * 8);
 	}
 	
 	if (betweenTurnTimer > 0){
