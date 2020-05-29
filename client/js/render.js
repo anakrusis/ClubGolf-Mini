@@ -78,9 +78,9 @@ var renderEntity = function (entity, x_offset, y_offset) {
 		
 		// Id is a property unique to players! nametag rendering
 		if (entity.id != undefined){
-			if (entity.id == playerID){ // current player name flashes
+			if (entity.id == currentPlayer){ // current player name flashes
 				var seqond = new Date().getTime();
-				ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
+				ctx.fillStyle = "rgb(255, 255," + seqond%255 + ")";
 			}else{
 				ctx.fillStyle = "#ffffff"
 			}
@@ -180,9 +180,9 @@ var render = function () {
 	ctx.fillText("Players: ",10,96); 
 	for (var i = 0; i < players.length; i++){
 	
-		if (i == playerID){
+		if (i == currentPlayer){
 			var seqond = new Date().getTime();
-			ctx.fillStyle = "rgb(" + seqond%255 + ", " + seqond%255 + ", "+ seqond%255 + ")";
+			ctx.fillStyle = "rgb(255, 255," + seqond%255 + ")";
 		}else{
 			ctx.fillStyle = "#ffffff"
 		}

@@ -77,11 +77,18 @@ rl.on('line', (line) => {
 
 var onMapLoad = function( path ) {
 	if (path == ""){
-		mapLoaded = {}; // put cool perlin noise generation stuff here :3
+		//mapLoaded = {}; // put cool perlin noise generation stuff here :3
 	}else{
-		mapLoaded = require( "./" + path + ".json" )
-		mapLoaded.par = 4
-		console.log('Loaded map "' + path + '".json!');
+		fullPath = "./" + path + ".json";
+		try {
+	
+			mapLoaded = require( fullPath );
+			mapLoaded.par = 4
+			console.log('Loaded map "' + path + '.json" successfully!\n');
+
+		} catch( err ) {
+			console.log('Could not load map "' + path + '.json"!\n'); 
+		}
 	}
 }
 
@@ -216,7 +223,7 @@ var onCourseEnd = function() {
 	for (i = 0; i < players.length; i++){
 		console.log( players[i].name + ": " + players[i].shot);
 	}
-	console.log("\n");
+	console.log("");
 	
 	io.emit("courseFinish", results, currentMap, results_names);
 	results_screen = true;
