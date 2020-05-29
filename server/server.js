@@ -10,10 +10,6 @@ const rl = readline.createInterface({
 });
 
 var clubs = require('./clubs.json');
-var map = require('./map.json');
-var mapData = map.layers[0].data
-
-map.par = 4
 
 var currentMap = -1;
 
@@ -68,13 +64,31 @@ rl.on('line', (line) => {
 			if (players.length == 0){
 				console.log("No players online!")
 			}
+			console.log("");
 			break;
 		case "/restart":
 			onCourseStart();
 	}
+	if (line.trim().substring(0,6) == "/load "){
+		pathString = line.trim().substring(6);
+		onMapLoad( pathString );
+	}
 });
 
+var onMapLoad = function( path ) {
+	if (path == ""){
+		mapLoaded = {}; // put cool perlin noise generation stuff here :3
+	}else{
+		mapLoaded = require( "./" + path + ".json" )
+		mapLoaded.par = 4
+		console.log('Loaded map "' + path + '".json!');
+	}
+}
+
 var onCourseStart = function() {
+	map = mapLoaded;
+	mapData = map.layers[0].data
+
 	// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
 	startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
 	startX = (startTile % map.width) * 8;
@@ -124,6 +138,7 @@ var onCourseStart = function() {
 	io.emit("courseStart", players, map);
 }
 
+onMapLoad("map");
 onCourseStart();
 
 var onTurnFinish = function() {
@@ -212,11 +227,25 @@ var update = function () {
 		ball = players[currentPlayer].ball;
 		ball.x += ( ball.velocity * Math.cos(ball.dir) )
 		ball.y += ( ball.velocity * Math.sin(ball.dir) )
+		ball.altitude += (ball.altvel * 0.5);
 	
 		ball.velocity /= 1.1; //friction
+		
+		if (ball.altitude <= 0){ // ball can't go under map, and will bounce off the surface of the map
+			ball.altitude = 0;
+			ball.altvel = -0.5 * ball.altvel;
+		}else{
+			ball.altvel -= 1;
+		}
 	
-		if (ball.velocity < 0.001){ // velocity cutoff
+		if (ball.velocity < 0.001){ // velocity cutoffs
 			ball.velocity = 0;
+		}
+		if (ball.altvel < 0.1 && ball.altitude <= 0.01){
+			ball.altvel = 0;
+			ball.altitude = 0;
+		} else {
+			
 		}
 		
 		if (!ballActive){ // when the ball is at a standstill, the player entity moves around it to aim
@@ -226,7 +255,7 @@ var update = function () {
 			players[currentPlayer].y = ball.y + y_add;
 		}
 	
-		if (ballActive && ball.velocity < 1) {
+		if (ballActive && ball.velocity < 1 && ball.altitude < 0.1) {
 			index = getTileIndex(ball.x, ball.y);
 			
 			if (mapData[index] == 25){ // hole 
@@ -242,6 +271,8 @@ var update = function () {
 		
 		if (ball.velocity == 0){ // shot is considered finished when the ball has 0 velocity
 			if (ballActive){
+				ball.altvel = 0;
+				ball.altitude = 0;
 				onTurnFinish();
 			}
 		}
@@ -265,6 +296,8 @@ io.on('connection', function (socket) {
 		if (!ballActive && playerID == currentPlayer){
 			currentClub = players[playerID].club;
 			ball.velocity = clubs.clubs[currentClub].vel * powerMeter;
+			ball.altvel = clubs.clubs[currentClub].lift * powerMeter;
+			
 			players[playerID].ball = ball;
 			io.emit("ballUpdate", playerID, ball);
 			ballActive = true;

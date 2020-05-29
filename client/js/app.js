@@ -3,9 +3,10 @@ class Ball {
 		this.name = "Ball";
 		this.x = 0;
 		this.y = 0;
-		this.altitude = 0;
+		this.altitude = 5;
 		this.dir = 0;
 		this.velocity = 0;
+		this.altvelocity = 0;
 		
 		this.height = 1;
 		this.texture = 2;

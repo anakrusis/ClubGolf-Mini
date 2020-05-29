@@ -66,8 +66,8 @@ var renderEntity = function (entity, x_offset, y_offset) {
 	
 	if (sy > horizon_scanline - ( entity.height * cam_zoom * scale)){ // Culling past the horizon
 		
-		if (entity.shadow && Math.random() > 0.5){
-			ctx.drawImage(texture_SHADOW, sx, sy + entity.height * cam_zoom * scale * 0.95, entity.width * cam_zoom * scale, entity.width / 8 * cam_zoom * scale)	
+		if (entity.shadow){
+			ctx.drawImage(texture_SHADOW, sx, sy + entity.height * cam_zoom * scale * 0.95, entity.width * cam_zoom * scale, 1 * cam_zoom * scale)	
 		}
 		
 		if (entity.altitude){
