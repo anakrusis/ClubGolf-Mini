@@ -309,6 +309,7 @@ io.on('connection', function (socket) {
 	socket.on("playerJoinRequest", function (playerJoining) {
 		
 		initPlayer(playerJoining);
+		playerJoining.id = players.length;
 		players.push(playerJoining);
 		
 		io.emit("playerJoin", playerJoining, players, map, clubs.clubs, currentPlayer);

@@ -288,7 +288,7 @@ var server_connect = function(){
 	socket.on("courseStart", function ( serverPlayers, serverMap ){
 		map = serverMap;
 		players = serverPlayers;
-		playerID = 0;
+		currentPlayer = 0;
 		results_screen = false;
 		ball_unlock = true;
 		powerMeter = -1;
