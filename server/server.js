@@ -15,15 +15,22 @@ var mapData = map.layers[0].data
 
 map.par = 4
 
+var currentMap = -1;
+
 console.log("Starting server...\n") // init server
 
-var players = []
+var players = [];
 var currentPlayer = 0;
 
 var ballActive = false;
 var betweenTurnTimer = -1;
+var betweenCourseTimer = -1;
 var BETWEEN_TURN_TIME = 56;
+var BETWEEN_COURSE_TIME = 600;
+
 var results_screen = false;
+var results = [];
+var results_names = []; // for now, results_names stores all the names per round
 
 var getTileIndex = function(x, y){
 	x = Math.floor(x / 8); y = Math.floor(y / 8);
@@ -109,6 +116,11 @@ var onCourseStart = function() {
 		initPlayer( players[i] );
 	}
 	
+	currentMap++;
+	
+	results_names = [];
+	results[currentMap] = [];
+	
 	io.emit("courseStart", players, map);
 }
 
@@ -183,14 +195,15 @@ var onTurnStart = function() {
 }
 
 var onCourseEnd = function() {
-	console.log("\nAll players have finished the course! Game over!");
+	console.log("\nAll players have finished the course!");
 	console.log("Here are the scores:");
 	
 	for (i = 0; i < players.length; i++){
 		console.log( players[i].name + ": " + players[i].shot);
 	}
+	console.log("\n");
 	
-	io.emit("courseFinish");
+	io.emit("courseFinish", results, currentMap, results_names);
 	results_screen = true;
 }
 
@@ -221,6 +234,8 @@ var update = function () {
 				players[currentPlayer].done = true;
 				console.log(players[currentPlayer].name + " is done!");
 				ball.velocity = 0;
+				results[currentMap][currentPlayer] = players[currentPlayer].shot;
+				results_names[currentPlayer] = players[currentPlayer].name;
 			}
 		}
 		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
@@ -269,7 +284,7 @@ io.on('connection', function (socket) {
 		console.log(playerJoining.name + " has joined the server (ID: " + playerJoining.id + ")" )
 		
 		if (results_screen){
-			io.emit("courseFinish");
+			io.emit("courseFinish", results, currentMap, results_names);
 		}else{
 
 		}
@@ -287,10 +302,8 @@ io.on('connection', function (socket) {
 	socket.on("disconnect", function () {
 
 		playerLeaving = getPlayerFromSocket(socket)
-		 // Players will not disappear from the results screen after leaving, if they are finished with the course
-		 // instead players who are done will be removed on course restart
 		 
-		if (playerLeaving != -1 && !playerLeaving.done){
+		if (playerLeaving != -1){
 			console.log( playerLeaving.name + " has left the server (ID: " + playerLeaving.id + ")")
 			players.splice(playerLeaving.id, 1)
 			for (i = playerLeaving.id; i < players.length; i++){
@@ -298,7 +311,7 @@ io.on('connection', function (socket) {
 			}
 			io.emit("playerLeave", playerLeaving.id, players)
 			
-			if (playerLeaving.id == currentPlayer){
+			if (playerLeaving.id == currentPlayer && !results_screen){
 				onTurnStart();
 			}
 		}

@@ -20,7 +20,7 @@ var soundPlayerInit = function () {
 
 	audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 	masterGainNode = audioCtx.createGain();
-	masterGainNode.gain.value = 0.2;
+	masterGainNode.gain.value = 0.1;
 	masterGainNode.connect(audioCtx.destination);
 	
 	oscs = [4];

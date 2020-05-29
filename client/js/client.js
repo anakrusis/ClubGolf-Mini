@@ -16,16 +16,19 @@ textures = [texture_PLAYER, texture_TREE, texture_BALL, texture_FLAG];
 var MAX_FPS = 60;
 
 statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Unknown Ground Type!"];
+holeStrings = ["Par","Bogey","Double Bogey","Triple Bogey"];
+holeStrings[-1] = "Birdie"; holeStrings[-2] = "Eagle"; holeStrings[-3] = "Albatross";
 
 var keysDown = {};
 var delta = 0;
 var map;
-var clubs
+var currentMap;
+var clubs;
 
 var connectTimer = 0;
 var betweenTurnTimer = 0;
 var BETWEEN_TURN_TIME = 96;
-var turnStatus;
+var turnStatus; var holeStatus;
 
 var powerMeter = -1;
 var powerMeterCoeff;
@@ -37,7 +40,10 @@ var currentPlayer; // The current player who is hitting the ball right now
 cam_zoom = 2
 cam_unlock = false // can the camera move freely yes or no
 ball_unlock = true // can you swing and hit the ball?
+
 results_screen = false
+results = [];
+results_names = [];
 
 var startClient = function(){
 	// Main canvas for rendering
@@ -59,40 +65,37 @@ var startClient = function(){
 		delete keysDown[e.keyCode];
 	}, false);
 
-	addEventListener("mousewheel", function (e){
+	addEventListener("mousewheel", function (e){ // normal scrolling
 		delta = e.wheelDelta;
 	}, false);
 	
-	addEventListener("DOMMouseScroll", function (e){
+	addEventListener("DOMMouseScroll", function (e){ // firefox scrolling support
 		delta = e.detail * -50;
 	}, false);
 
 	var update = function (modifier) {
-		//cameraX = players
-		
 		if (87 in keysDown) { // up
 			if (cam_unlock){
 				cam_y += 4 * Math.sin(cam_dir - Math.PI / 2);
 				cam_x -= 4 * Math.cos(cam_dir - Math.PI / 2);
-				
-			} else if (ball_unlock && players[playerID]) {
-				players[playerID].club = Math.min( players[playerID].club + 1, clubs.length-1);
-				socket.emit("playerUpdateRequest", players[playerID], playerID);
-				
-				keysDown[87] = false;
+			}else{
+				if (ball_unlock && players[playerID]) {
+					players[playerID].club = Math.min( players[playerID].club + 1, clubs.length-1);
+					socket.emit("playerUpdateRequest", players[playerID], playerID);
+					delete keysDown[87];
+				}	
 			}
-
 		}
 		if (83 in keysDown) { // down
 			if (cam_unlock){
 				cam_y -= 4 * Math.sin(cam_dir - Math.PI / 2);
 				cam_x += 4 * Math.cos(cam_dir - Math.PI / 2);
-				
-			} else if (ball_unlock && players[playerID]) {
-				players[playerID].club = Math.max( players[playerID].club - 1, 0);
-				socket.emit("playerUpdateRequest", players[playerID], playerID);
-				
-				keysDown[83] = false;
+			}else{
+				if (ball_unlock && players[playerID]) {
+					players[playerID].club = Math.max( players[playerID].club - 1, 0);
+					socket.emit("playerUpdateRequest", players[playerID], playerID);
+					delete keysDown[83];
+				}
 			}
 		}
 		if (65 in keysDown) { // left 
@@ -112,6 +115,7 @@ var startClient = function(){
 		if (ball_unlock && players[playerID]){
 			if (65 in keysDown || 68 in keysDown){
 			
+				olddir = players[playerID].ball.dir;
 				if (65 in keysDown){
 					players[playerID].ball.dir -= Math.PI / 128;
 				}
@@ -120,15 +124,9 @@ var startClient = function(){
 				}
 				socket.emit("playerUpdateRequest", players[playerID], playerID);
 				
-				if (65 in keysDown){
-					players[playerID].ball.dir += Math.PI / 128;
-				}
-				if (68 in keysDown){
-					players[playerID].ball.dir -= Math.PI / 128;
-				}
+				players[playerID].ball.dir = olddir;
 			}
 		}
-
 		
 		if (100 in keysDown) { // numpad 4 
 			cam_dir -= Math.PI / 32;
@@ -186,6 +184,7 @@ var startClient = function(){
 			cam_y = players[currentPlayer].ball.y;
 		}
 		
+		// Map redraws only when there is a change in the camera position.
 		if (cam_zoomOld != cam_zoom || cam_dirOld != cam_dir || cam_xOld != cam_x || cam_yOld != cam_y){
 			redrawFlag = true;
 		}
@@ -214,7 +213,7 @@ var startClient = function(){
 		var now = Date.now();
 		var delta = now - then;
 	
-		update(delta);	
+		update(delta);
 		render();
 		
 		then = now;
@@ -320,6 +319,8 @@ var server_connect = function(){
 	socket.on("turnFinish", function ( playerCurrent, status ){
 		betweenTurnTimer = BETWEEN_TURN_TIME;
 		turnStatus = status;
+		holeStatus = players[playerCurrent].shot - map.par;
+		
 		if (status == 4){ // ball in hole sfx
 			loadSong(sfx_WIN);
 		}else{
@@ -328,11 +329,14 @@ var server_connect = function(){
 		
 	});
 	
-	socket.on("courseFinish", function() {
+	socket.on("courseFinish", function( serverResults, serverCurrentMap, serverResultsNames ) {
 		if (!results_screen){
+			results = serverResults;
 			ball_unlock = false;
 			results_screen = true;
 			loadSong(song_RESULTS)
+			currentMap = serverCurrentMap;
+			results_names = serverResultsNames;
 		}
 	});
 	

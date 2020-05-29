@@ -205,9 +205,17 @@ var render = function () {
 		ctx.fillStyle = "rgba(255, 255, 255, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
 		ctx.font = "bold 60px Arial";
 		ctx.textAlign = "center";
-		ctx.fillText(statusStrings[turnStatus], 320, 320);
+		outStr = statusStrings[turnStatus];
+		if (players[currentPlayer].done){
+			if (holeStrings[holeStatus]){
+				outStr = holeStrings[holeStatus];
+			}else{
+				outStr = holeStatus;
+			}
+		}
+		ctx.fillText(outStr, 320, 320);
 		ctx.fillStyle = "rgba(0, 0, 0, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
-		ctx.strokeText(statusStrings[turnStatus], 320, 320);
+		ctx.strokeText(outStr, 320, 320);
 	}
 	
 	if (results_screen){
@@ -219,12 +227,10 @@ var render = function () {
 		ctx.textAlign = "center";
 		ctx.fillText("Results", 320, 140);
 		
-		for (i=0; i<players.length; i++){
-			if (players[i].done){
-				score = players[i].shot - map.par
-				if (score > 0){ score = "+" + score }
-				ctx.fillText(players[i].name + ": " + score, 320, 200 + i * 68);
-			}
+		for (i = 0; i < results[currentMap].length; i++){
+			score = results[currentMap][i] - map.par
+			if (score > 0){ score = "+" + score }
+			ctx.fillText(results_names[i] + ": " + score, 320, 200 + i * 68);
 		}
 		
 		ctx.fillStyle = "rgb(0, 0, 0)";
