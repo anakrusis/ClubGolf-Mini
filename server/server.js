@@ -55,8 +55,10 @@ class Tree {
 	}
 }
 
-rl.on('line', (line) => {
-	switch (line.trim()) {
+rl.on('line', (line) => { // Command line parsing!
+	firstArg = line.trim().split(' ')[0]
+	switch (firstArg) {
+		
 		case "/list":
 			for (i = 0; i < players.length; i++){
 				console.log ( players[i].name + " (ID: " + players[i].id + ")" )
@@ -68,10 +70,15 @@ rl.on('line', (line) => {
 			break;
 		case "/restart":
 			onCourseStart();
-	}
-	if (line.trim().substring(0,6) == "/load "){
-		pathString = line.trim().substring(6);
-		onMapLoad( pathString );
+			break;
+		case "/stop":
+			console.log("Stopping server...");
+			process.exit(0);
+			break;
+		case "/load":
+			pathString = line.trim().substring(6);
+			onMapLoad( pathString );
+			break;
 	}
 });
 
@@ -308,7 +315,7 @@ io.on('connection', function (socket) {
 			players[playerID].ball = ball;
 			io.emit("ballUpdate", playerID, ball);
 			ballActive = true;
-			io.emit("ballHit");
+			io.emit("ballHit", powerMeter);
 		}
 
 	});

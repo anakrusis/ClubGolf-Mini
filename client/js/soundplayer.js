@@ -38,7 +38,7 @@ var soundPlayerInit = function () {
 	}
 	
 	soundInitted = true;
-	loadSong(song_MAIN);
+	loadSong(song_EMPTY);
 }
 
 var loadSong = function (song) {
@@ -61,78 +61,81 @@ var loadSong = function (song) {
 		chData = song.ch[i];
 		hasRhythm = false;
 		
-		for (j = 1; j < chData.length; j++){
+		if (chData){
+			for (j = 1; j < chData.length; j++){
 			
-			hasNote = false;
-			currentChar = chData.substring(j, j+1);
-			
-			switch (currentChar){
-			
-				case "-":
-					octave--;
-					octave = Math.max(0, octave);
-					break;
-				case "+":
-					octave++;
-					octave = Math.min(8, octave);
-					break;
-				case "c":
-					note = 0;hasNote = true;
-					break;
-				case "d":
-					note = 2;hasNote = true;
-					break;
-				case "e":
-					note = 4;hasNote = true;
-					break;
-				case "f":
-					note = 5;hasNote = true;
-					break;
-				case "g":
-					note = 7;hasNote = true;
-					break;
-				case "a":
-					note = 9;hasNote = true;
-					break;
-				case "b":
-					note = 11;hasNote = true;
-					break;
-				case "r":
-					note = -1;hasNote = true;
-					break;
-				case "#":
-					break;
-					
-				default:
-					fullSub = chData.substring(j);
-					if (parseInt(fullSub, 10) != NaN && !hasRhythm){
-						
-						rhythm = parseInt(fullSub, 10) * song.speed;
-						hasRhythm = true;
-					}
-			}
-			if (hasNote){
-				hasRhythm = false;
-			
-				if (note == -1){
-					loadedSong.ch[i].pitches.push(-1);
-				}else{
-				
-					nextChar = chData.substring(j+1, j+2);
-					if (nextChar == "#"){
-						note = (note + 1) % 12;
-					}
-				
-					octaveMult = Math.pow(2, octave);
-					freq = FREQ_TBL[note] * octaveMult;
-					loadedSong.ch[i].pitches.push(freq);
-				}
-				loadedSong.ch[i].times.push(time);
-				time += rhythm;
-				
 				hasNote = false;
+				currentChar = chData.substring(j, j+1);
+				
+				switch (currentChar){
+				
+					case "-":
+						octave--;
+						octave = Math.max(0, octave);
+						break;
+					case "+":
+						octave++;
+						octave = Math.min(8, octave);
+						break;
+					case "c":
+						note = 0;hasNote = true;
+						break;
+					case "d":
+						note = 2;hasNote = true;
+						break;
+					case "e":
+						note = 4;hasNote = true;
+						break;
+					case "f":
+						note = 5;hasNote = true;
+						break;
+					case "g":
+						note = 7;hasNote = true;
+						break;
+					case "a":
+						note = 9;hasNote = true;
+						break;
+					case "b":
+						note = 11;hasNote = true;
+						break;
+					case "r":
+						note = -1;hasNote = true;
+						break;
+					case "#":
+						break;
+						
+					default:
+						fullSub = chData.substring(j);
+						if (parseInt(fullSub, 10) != NaN && !hasRhythm){
+							
+							rhythm = parseInt(fullSub, 10) * song.speed;
+							hasRhythm = true;
+						}
+				}
+				if (hasNote){
+					hasRhythm = false;
+				
+					if (note == -1){
+						loadedSong.ch[i].pitches.push(-1);
+					}else{
+					
+						nextChar = chData.substring(j+1, j+2);
+						if (nextChar == "#"){
+							note = (note + 1) % 12;
+						}
+					
+						octaveMult = Math.pow(2, octave);
+						freq = FREQ_TBL[note] * octaveMult;
+						loadedSong.ch[i].pitches.push(freq);
+					}
+					loadedSong.ch[i].times.push(time);
+					time += rhythm;
+					
+					hasNote = false;
+				}
 			}
 		}
+
 		if (time > loadedSong.length){
 			loadedSong.length = time;
 		}

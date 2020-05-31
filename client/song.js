@@ -10,6 +10,8 @@ ch:[
 " 564r6d#12r6c12r6d#6r6f6r6f12r6g12r6g#18r6d#30r3-d#21r3++d#15r3d#15r6--g#6r6g#6r15g3r27f#15r3d9r3d9r3d9r3d9r3d0r",
 " 780r3+a#9r6d#6r15d3r3a#0r",]}
 
+var song_EMPTY = { speed:1, loop:false, ch:[""] }
+
 var sfx_HIT = {
 speed:1,
 loop:false,

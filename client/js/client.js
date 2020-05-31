@@ -238,7 +238,8 @@ var server_connect = function(){
 	if (socket){
 		socket.disconnect();
 	}
-	socket = io.connect(settings.opts.connectionString);
+	socket = io.connect(settings.opts.connectionString, {
+    reconnection: false });
 
 	socket.on("playerJoin", function(playerJoining, serverPlayerList, serverMap, serverClubs, s_currentPlayer){
 		console.log(playerJoining.name + " has joined the server")
@@ -275,14 +276,21 @@ var server_connect = function(){
 	
 	socket.on("connect", function(){
 		var form = document.getElementById("form"); // text box for joining server goes away once you join
-		form.remove();
+		form.style.display="none";;
 		
 		player.socket = socket.id
 		socket.emit("playerJoinRequest", player)
 		
 		socket.on("disconnect", function(){
+			console.log("Left the server");
+			loadSong(song_EMPTY);
 			
+			var form = document.getElementById("form"); // text box comes back if you're disconnected
+			form.style.display="block"
+			socket.disconnect();
 		});
+		
+		loadSong(song_MAIN);
 	});
 	
 	socket.on("courseStart", function ( serverPlayers, serverMap ){
@@ -303,7 +311,8 @@ var server_connect = function(){
 			}	
 		}
 	});
-	socket.on("ballHit", function (){
+	socket.on("ballHit", function ( serverMeter ){
+		powerMeter = serverMeter;
 		loadSong(sfx_HIT);
 	});
 	
@@ -311,8 +320,8 @@ var server_connect = function(){
 		currentPlayer = playerCurrent;
 		if (playerCurrent == playerID){
 			ball_unlock = true;
-			powerMeter = -1;
 		}
+		powerMeter = -1;
 		betweenTurnTimer = 0;
 		loadSong(song_MAIN);
 	});

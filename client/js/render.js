@@ -193,8 +193,8 @@ var render = function () {
 		ctx.fillText("Par: " + map.par, 566, 32);
 	}
 	
-	if (clubs){ // clubs
-		ctx.fillText(clubs[players[playerID].club].name, 10, 630);
+	if (clubs && players[currentPlayer]){ // clubs
+		ctx.fillText(clubs[players[currentPlayer].club].name, 10, 630);
 	}
 	
 	if (powerMeter != -1){ // power meter		
