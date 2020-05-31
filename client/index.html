@@ -3,6 +3,7 @@
 <html>
 	<head>
 		<title>ClubGolf Mini</title>
+		<meta charset="UTF-8">
 		<link rel="stylesheet" href="./css/style.css" />
 		
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
@@ -24,7 +25,7 @@
 		
 		<form id="form">
 			Name:<br>
-			<input class="setting" type="text" name="playerName" value=""><br>
+			<input class="setting" type="text" name="playerName" value="Name" minlength="1" maxlength="16"><br>
 			IP:<br>
 			<input class="setting" type="text" name="connectionString" value=""><br>
 			<input type="submit" value="Connect">

@@ -186,7 +186,11 @@ var render = function () {
 		}else{
 			ctx.fillStyle = "#ffffff"
 		}
-		ctx.fillText(players[i].name,10,128 + (i*32) );
+		var playerstr = players[i].name;
+		if (i == playerID){
+			playerstr += " ⇦You"
+		}
+		ctx.fillText(playerstr,10,128 + (i*32) );
 	}
 	ctx.fillStyle = "#ffffff"
 	if (map){

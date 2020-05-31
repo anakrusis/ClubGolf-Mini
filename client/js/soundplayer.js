@@ -144,7 +144,7 @@ var loadSong = function (song) {
 
 var soundPlayerTick = function () {
 
-	if (soundInitted){
+	if (soundInitted && document.hasFocus()){
 		for (i = 0; i < CHANNELS_AMT; i++){
 			
 			ls = loadedSong.ch[i];

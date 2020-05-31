@@ -365,3 +365,10 @@ var server_connect = function(){
 	
 	soundPlayerInit();
 }
+window.onblur = function(){
+	if (soundInitted){
+		for (i = 0; i < CHANNELS_AMT; i++){
+			oscs[i].frequency.setValueAtTime(0, audioCtx.currentTime);
+		}
+	}
+}
