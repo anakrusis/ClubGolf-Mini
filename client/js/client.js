@@ -256,6 +256,11 @@ var server_connect = function(){
 			clubs = serverClubs
 			currentPlayer = s_currentPlayer;
 		}
+		
+		if (playerID == s_currentPlayer){
+			ball_unlock = true;
+			powerMeter = -1;
+		}
 	});
 	
 	socket.on("playerLeave", function(playerLeaving, serverPlayerList){
@@ -268,6 +273,12 @@ var server_connect = function(){
 		}
 		console.log(players[playerLeaving].name + " has left the server")
 		players = serverPlayerList
+	});
+	
+	socket.on("playerKick", function(id){
+		if (id == playerID){
+			socket.disconnect();
+		}
 	});
 	
 	socket.on("playerUpdate", function(playerUpdating, playerUpdatingID){
@@ -288,6 +299,8 @@ var server_connect = function(){
 			var form = document.getElementById("form"); // text box comes back if you're disconnected
 			form.style.display="block"
 			socket.disconnect();
+			map = undefined;
+			ball_unlock = false;
 		});
 		
 		loadSong(song_MAIN);

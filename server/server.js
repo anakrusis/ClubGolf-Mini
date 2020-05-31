@@ -79,6 +79,23 @@ rl.on('line', (line) => { // Command line parsing!
 			pathString = line.trim().substring(6);
 			onMapLoad( pathString );
 			break;
+		case "/kick":
+			arg = line.trim().substring(6);
+			if (parseInt(arg, 10) != NaN){
+				id = parseInt(arg, 10);
+				if ( players[id] ){
+					io.emit("playerKick", id);
+				
+				}else{
+					console.log("Invalid player ID!\n");
+				}
+			}else{
+				console.log("Invalid player ID: not an integer!\n");
+			}
+			break;
+		case "/next":
+			onTurnStart();
+			break;
 	}
 });
 
@@ -352,16 +369,7 @@ io.on('connection', function (socket) {
 		playerLeaving = getPlayerFromSocket(socket)
 		 
 		if (playerLeaving != -1){
-			console.log( playerLeaving.name + " has left the server (ID: " + playerLeaving.id + ")")
-			players.splice(playerLeaving.id, 1)
-			for (i = playerLeaving.id; i < players.length; i++){
-				players[i].id--;
-			}
-			io.emit("playerLeave", playerLeaving.id, players)
-			
-			if (playerLeaving.id == currentPlayer && !results_screen){
-				onTurnStart();
-			}
+			onPlayerLeave(playerLeaving);
 		}
 		
 	});
@@ -388,5 +396,20 @@ var initPlayer = function(p){
 	p.done = false;
 	p.shot = 1;
 	p.club = 0;
+}
+
+var onPlayerLeave = function(p){
+
+	console.log( p.name + " has left the server (ID: " + p.id + ")")
+	
+	players.splice(p.id, 1)
+	for (i = p.id; i < players.length; i++){
+		players[i].id--;
+	}
+	io.emit("playerLeave", p.id, players);
+			
+	if (p.id == currentPlayer && !results_screen){
+		onTurnStart();
+	}
 }
 
