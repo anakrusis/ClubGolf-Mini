@@ -32,6 +32,13 @@ ch:[
 " 4-ab+dab0r"
 ]}
 
+var sfx_BAD = {
+speed:2, loop:false,
+ch:[
+" 2-crcrcr",
+" 2-f#rf#rf#r",
+]}
+
 var sfx_WIN = {
 speed:1,
 loop:false,

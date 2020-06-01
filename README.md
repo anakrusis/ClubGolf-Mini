@@ -5,7 +5,7 @@ Maps are made in [Tiled](https://www.mapeditor.org/); both the .tmx source files
 
 # How to play
 
-ClubGolf Mini can run locally or on a file server! If playing the game locally, simply run the index.html file.
+ClubGolf Mini can run locally or on a file server! If playing the game locally, simply run the index.html file in your browser of choice. This game runs best in Firefox, and runs worse in Chrome.
 
 __Controls:__
 

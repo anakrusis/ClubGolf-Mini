@@ -145,6 +145,7 @@ var onCourseStart = function() {
 	
 	currentPlayer = 0;
 	ballActive = false;
+	ballReturn = false;
 	
 	map.trees = [];
 	
@@ -153,7 +154,7 @@ var onCourseStart = function() {
 	flag.width = 4; flag.height = 8;
 	map.trees.push( flag );
 
-	for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees exclusively on Out of Bounds area
+	for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees on out of bounds or rough
 		treeX = Math.round ( Math.random() * map.width  * 8 );
 		treeY = Math.round ( Math.random() * map.height * 8 );
 		tree = new Tree (treeX, treeY) ;
@@ -226,6 +227,10 @@ var onTurnFinish = function() {
 			status = -1; // misc
 			ballReturn = true;
 			break;
+	}
+	// If your ball somehow manages to escape the map (i.e. small map)
+	if (thisBall.x >= map.width * 8 || thisBall.y >= map.height * 8 || thisBall.x < 0 || thisBall.y < 0){
+		status = 0;
 	}
 	
 	io.emit("playerUpdate", players[currentPlayer], currentPlayer);
@@ -358,6 +363,11 @@ io.on('connection', function (socket) {
 	socket.on("ballHit", function (playerID, ball, powerMeter) {
 	
 		ballInitialX = ball.x; ballInitialY = ball.y;
+		
+		index = getTileIndex(ball.x, ball.y); // Handling for bunker on initial shot: shot strength 1/10th
+		if (mapData[index] == TILE_BUNKER){
+			powerMeter *= 0.5;
+		}
 		
 		if (!ballActive && playerID == currentPlayer){
 			currentClub = players[playerID].club;

@@ -84,8 +84,9 @@ var renderEntity = function (entity, x_offset, y_offset) {
 			}else{
 				ctx.fillStyle = "#ffffff"
 			}
-			ctx.font = "30px Arial Narrow";
-			ctx.fillText(entity.name, sx , sy);
+			ctx.font = "24px Verdana";
+			ctx.textAlign = "center";
+			ctx.fillText(entity.name, sx + entity.width / 2 * cam_zoom * scale, sy);
 		}
 	}
 }
@@ -168,7 +169,7 @@ var render = function () {
 		renderEntity( entityRenderList[i], 0, 0);
 	}
 	
-	ctx.font = "30px Arial Narrow";
+	ctx.font = "24px Verdana";
 	ctx.fillStyle = "#ffffff";
 	ctx.textAlign = "left";
 	
@@ -188,13 +189,13 @@ var render = function () {
 		}
 		var playerstr = players[i].name;
 		if (i == playerID){
-			playerstr += " ⇦You"
+			playerstr += " ⬅You" // black arrow
 		}
 		ctx.fillText(playerstr,10,128 + (i*32) );
 	}
 	ctx.fillStyle = "#ffffff"
 	if (map){
-		ctx.fillText("Par: " + map.par, 566, 32);
+		ctx.fillText("Par: " + map.par, 552, 32);
 	}
 	
 	if (clubs && players[currentPlayer]){ // clubs
@@ -212,14 +213,16 @@ var render = function () {
 	
 	if (betweenTurnTimer > 0){
 		ctx.fillStyle = "rgba(255, 255, 255, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
-		ctx.font = "bold 60px Arial";
+		ctx.font = "bold 60px Verdana";
 		ctx.textAlign = "center";
 		outStr = statusStrings[turnStatus];
 		if (players[currentPlayer].done){
-			if (holeStrings[holeStatus]){
+			if (players[currentPlayer].shot == 1){
+				outStr = "Hole in One!"
+			}else if (holeStrings[holeStatus]){
 				outStr = holeStrings[holeStatus];
 			}else{
-				outStr = holeStatus;
+				outStr = "+" + holeStatus;
 			}
 		}
 		ctx.fillText(outStr, 320, 320);
@@ -232,7 +235,7 @@ var render = function () {
 		ctx.fillRect(0,0,canvW,canvH)
 	
 		ctx.fillStyle = "rgb(255, 255, 255)";
-		ctx.font = "bold 60px Arial";
+		ctx.font = "bold 54px Verdana";
 		ctx.textAlign = "center";
 		ctx.fillText("Results", 320, 140);
 		

@@ -347,6 +347,8 @@ var server_connect = function(){
 		
 		if (status == 4){ // ball in hole sfx
 			loadSong(sfx_WIN);
+		}else if (status == 0 || status == 5 || status == 6 || status == -1){
+			loadSong(sfx_BAD);
 		}else{
 			loadSong(sfx_GOOD); // generic sfx
 		}
