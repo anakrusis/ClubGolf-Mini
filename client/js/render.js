@@ -173,7 +173,7 @@ var render = function () {
 	ctx.textAlign = "left";
 	
 	if (players[currentPlayer]){ // player list
-		var topString = players[currentPlayer].name + "'s turn (Shot: " + players[currentPlayer].shot + ")";
+		var topString = players[currentPlayer].name + "'s turn (Stroke " + players[currentPlayer].shot + ")";
 		ctx.fillText(topString,10,32);
 	}
 

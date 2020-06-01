@@ -9,6 +9,15 @@ const rl = readline.createInterface({
   prompt:""
 });
 
+const TILE_OUT_OF_BOUNDS = 1;
+const TILE_ROUGH         = 2;
+const TILE_FAIRWAY       = 3;
+const TILE_GREEN         = 4;
+const TILE_HOLE          = 5;
+const TILE_TEE           = 6;
+const TILE_BUNKER        = 7;
+const TILE_WATER         = 8;
+
 var clubs = require('./clubs.json');
 
 var currentMap = -1;
@@ -19,10 +28,14 @@ var players = [];
 var currentPlayer = 0;
 
 var ballActive = false;
+var ballReturn = false; // flagged true when out of bounds or in water
 var betweenTurnTimer = -1;
 var betweenCourseTimer = -1;
-var BETWEEN_TURN_TIME = 56;
-var BETWEEN_COURSE_TIME = 600;
+var ballInitialX = 0;
+var ballInitialY = 0;
+
+const BETWEEN_TURN_TIME = 56;
+const BETWEEN_COURSE_TIME = 600;
 
 var results_screen = false;
 var results = [];
@@ -121,11 +134,11 @@ var onCourseStart = function() {
 	mapData = map.layers[0].data
 
 	// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
-	startTile = mapData.findIndex( function(element, index, array){ return element == 21 });
+	startTile = mapData.findIndex( function(element, index, array){ return element == TILE_TEE });
 	startX = (startTile % map.width) * 8;
 	startY = Math.floor(startTile / map.width) * 8;
 	console.log("Start pos.: " + startX + "," + startY);
-	holeTile = mapData.findIndex( function(element, index, array){ return element == 25 });
+	holeTile = mapData.findIndex( function(element, index, array){ return element == TILE_HOLE });
 	holeX = (holeTile % map.width) * 8;
 	holeY = Math.floor(holeTile / map.width) * 8;
 	console.log("Hole pos.: " + holeX + "," + holeY + "\n");
@@ -148,7 +161,7 @@ var onCourseStart = function() {
 		tree.width = tree.height;
 		
 		index = getTileIndex(treeX, treeY);
-		if (mapData[index] == 1){
+		if (mapData[index] == TILE_OUT_OF_BOUNDS || mapData[index] == TILE_ROUGH){
 			map.trees.push( tree )
 		}
 		
@@ -181,33 +194,38 @@ var onTurnFinish = function() {
 	var thisBall = players[currentPlayer].ball; //tile handler when ball lands
 	index = getTileIndex(thisBall.x, thisBall.y);
 	switch (mapData[index]){
-		case 1:
+		case TILE_OUT_OF_BOUNDS:
 			status = 0; // out of bounds
+			ballReturn = true;
 			break;
 			
-		case 19:
+		case TILE_ROUGH:
 			status = 1; // rough
 			break;
 		
-		case 21:
-		case 23:
+		case TILE_FAIRWAY:
+		case TILE_TEE:
 			status = 2; // fairway
 			break;
 		
-		case 26: // all these different green tiles (this isn't even all of them) will probably be scrapped
-		case 27:
-		case 28:
-		case 42:
-		case 43:
+		case TILE_GREEN:
 			status = 3; // green
 			break;
 			
-		case 25:
+		case TILE_HOLE:
 			status = 4; // hole
 			break;
-			
+		case TILE_BUNKER:
+			status = 5;
+			break;
+		case TILE_WATER:
+			status = 6;
+			ballReturn = true;
+			break;
 		default:
-			status = 5; // misc
+			status = -1; // misc
+			ballReturn = true;
+			break;
 	}
 	
 	io.emit("playerUpdate", players[currentPlayer], currentPlayer);
@@ -218,6 +236,14 @@ var onTurnFinish = function() {
 }
 
 var onTurnStart = function() {
+
+	if (ballReturn){ // action on ball lost, 1 stroke penalty and move back to old spot
+		players[currentPlayer].ball.x = ballInitialX; players[currentPlayer].ball.y = ballInitialY;
+		players[currentPlayer].shot++;
+		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
+		ballReturn = false;
+	}
+	
 	next = nextAvailablePlayer();
 
 	if (next != -1){
@@ -286,16 +312,23 @@ var update = function () {
 			players[currentPlayer].y = ball.y + y_add;
 		}
 	
-		if (ballActive && ball.velocity < 1 && ball.altitude < 0.1) {
+		if (ballActive && ball.altitude < 0.1) {
 			index = getTileIndex(ball.x, ball.y);
 			
-			if (mapData[index] == 25){ // hole 
+			if (mapData[index] == TILE_HOLE){ // hole 
 			
-				players[currentPlayer].done = true;
-				console.log(players[currentPlayer].name + " is done!");
+				if ( ball.velocity < 1 ){ // this allows the ball to skim over the hole if going too fast
+					players[currentPlayer].done = true;
+					console.log(players[currentPlayer].name + " is done!");
+					ball.velocity = 0;
+					results[currentMap][currentPlayer] = players[currentPlayer].shot;
+					results_names[currentPlayer] = players[currentPlayer].name;
+				}
+			} else if (mapData[index] == TILE_BUNKER){
 				ball.velocity = 0;
-				results[currentMap][currentPlayer] = players[currentPlayer].shot;
-				results_names[currentPlayer] = players[currentPlayer].name;
+				
+			} else if (mapData[index] == TILE_WATER){
+				ball.velocity = 0;
 			}
 		}
 		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
@@ -324,6 +357,8 @@ io.on('connection', function (socket) {
 
 	socket.on("ballHit", function (playerID, ball, powerMeter) {
 	
+		ballInitialX = ball.x; ballInitialY = ball.y;
+		
 		if (!ballActive && playerID == currentPlayer){
 			currentClub = players[playerID].club;
 			ball.velocity = clubs.clubs[currentClub].vel * powerMeter;

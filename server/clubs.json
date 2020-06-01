@@ -10,19 +10,19 @@
 		{
 			"name":"Wedge",
 			"vel":"8",
-			"lift":"10"
+			"lift":"12"
 		},
 		
 		{
 			"name":"Wood",
 			"vel":"24",
-			"lift":"6"
+			"lift":"8"
 		},
 		
 		{
 			"name":"Driver",
 			"vel":"48",
-			"lift":"8"
+			"lift":"10"
 		}
 
 	]

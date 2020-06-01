@@ -16,7 +16,8 @@ textures = [texture_PLAYER, texture_TREE, texture_BALL, texture_FLAG];
 
 var MAX_FPS = 60;
 
-statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Unknown Ground Type!"];
+statusStrings = ["Out of Bounds","Rough","Fairway","Green","Hole!","Bunker","Water Hazard"];
+statusStrings[-1] = "Unknown Ground Type!";
 holeStrings = ["Par","Bogey","Double Bogey","Triple Bogey"];
 holeStrings[-1] = "Birdie"; holeStrings[-2] = "Eagle"; holeStrings[-3] = "Albatross";
 
