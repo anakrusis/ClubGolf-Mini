@@ -211,11 +211,12 @@ var render = function () {
 		ctx.drawImage(texture_METER_OUTLINE, 320 - (METER_SCALE * 32), 600, METER_SCALE * 64, METER_SCALE * 8);
 	}
 	
-	if (betweenTurnTimer > 0){
+	if (betweenTurnTimer > 0 && players[currentPlayer]){
 		ctx.fillStyle = "rgba(255, 255, 255, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
 		ctx.font = "bold 60px Verdana";
 		ctx.textAlign = "center";
 		outStr = statusStrings[turnStatus];
+		
 		if (players[currentPlayer].done){
 			if (players[currentPlayer].shot == 1){
 				outStr = "Hole in One!"
@@ -230,7 +231,7 @@ var render = function () {
 		ctx.strokeText(outStr, 320, 320);
 	}
 	
-	if (results_screen){
+	if (results_screen && map){
 		ctx.fillStyle = "rgba(0,0,0,0.2)"
 		ctx.fillRect(0,0,canvW,canvH)
 	

@@ -100,17 +100,20 @@ var startClient = function(){
 				}
 			}
 		}
-		if (65 in keysDown) { // left 
+		t = 4;
+		
+		if (65 in keysDown) { // left
+			
 			if (cam_unlock){
-				cam_y -= 4 * Math.sin(cam_dir - Math.PI);
-				cam_x += 4 * Math.cos(cam_dir - Math.PI);
+				cam_y -= t * Math.sin(cam_dir - Math.PI);
+				cam_x += t * Math.cos(cam_dir - Math.PI);
 				
 			}
 		}
 		if (68 in keysDown) { // right
 			if (cam_unlock){
-				cam_y += 4 * Math.sin(cam_dir - Math.PI);
-				cam_x -= 4 * Math.cos(cam_dir - Math.PI);
+				cam_y += t * Math.sin(cam_dir - Math.PI);
+				cam_x -= t * Math.cos(cam_dir - Math.PI);
 				
 			}
 		}
@@ -255,8 +258,8 @@ var server_connect = function(){
 		if (!map){ // If the player does not yet have the map, then here it is
 			map = serverMap
 			clubs = serverClubs
-			currentPlayer = s_currentPlayer;
 		}
+		currentPlayer = s_currentPlayer;
 		
 		if (playerID == s_currentPlayer){
 			ball_unlock = true;

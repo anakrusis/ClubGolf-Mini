@@ -3,13 +3,13 @@
 	
 		{
 			"name":"Putter",
-			"vel":"4",
+			"vel":"6",
 			"lift":"0"
 		},
 		
 		{
 			"name":"Wedge",
-			"vel":"8",
+			"vel":"12",
 			"lift":"12"
 		},
 		

@@ -242,7 +242,7 @@ var onTurnFinish = function() {
 
 var onTurnStart = function() {
 
-	if (ballReturn){ // action on ball lost, 1 stroke penalty and move back to old spot
+	if (ballReturn && players[currentPlayer]){ // action on ball lost, 1 stroke penalty and move back to old spot
 		players[currentPlayer].ball.x = ballInitialX; players[currentPlayer].ball.y = ballInitialY;
 		players[currentPlayer].shot++;
 		io.emit("playerUpdate", players[currentPlayer], currentPlayer);
@@ -398,6 +398,10 @@ io.on('connection', function (socket) {
 		}else{
 
 		}
+		
+		if (players.length == 1){
+			onTurnStart();
+		}
 	});
 	
 	socket.on("playerUpdateRequest", function (playerUpdating, playerID) {
@@ -453,7 +457,10 @@ var onPlayerLeave = function(p){
 	}
 	io.emit("playerLeave", p.id, players);
 			
-	if (p.id == currentPlayer && !results_screen){
+	if (currentPlayer >= p.id){
+		currentPlayer--;
+	}		
+	if (p.id == currentPlayer + 1 && !results_screen){
 		onTurnStart();
 	}
 }

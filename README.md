@@ -38,4 +38,6 @@ anakrusis/adggfjggfafafafa: programming, assets
 
 krma420: local storage programming and refactoring
 
+Simon M.: course design
+
 DeaSTL: power meter art
