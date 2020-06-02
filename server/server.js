@@ -231,6 +231,7 @@ var onTurnFinish = function() {
 	// If your ball somehow manages to escape the map (i.e. small map)
 	if (thisBall.x >= map.width * 8 || thisBall.y >= map.height * 8 || thisBall.x < 0 || thisBall.y < 0){
 		status = 0;
+		ballReturn = true;
 	}
 	
 	io.emit("playerUpdate", players[currentPlayer], currentPlayer);

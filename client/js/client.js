@@ -316,6 +316,7 @@ var server_connect = function(){
 	
 	socket.on("courseStart", function ( serverPlayers, serverMap ){
 		map = serverMap;
+		initMapTex(map);
 		players = serverPlayers;
 		currentPlayer = 0;
 		results_screen = false;
