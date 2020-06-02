@@ -55,6 +55,26 @@ var compareHeightVal = function (entity1, entity2){
 	return sy1 - sy2;
 }
 
+var initMapTex = function (map) {
+
+	texCanvas.width = map.width * 8;
+	texCanvas.height = map.height * 8;
+	data = map.layers[0].data;
+	
+	for (var i = 0; i < data.length; i++){
+		tileVal = data[i] - 1
+
+		sourcex = (tileVal % 16) * 8;
+		sourcey = Math.floor(tileVal / 16) * 8;
+		
+		destx = (i % map.width) * 8;
+		desty = Math.floor(i / map.width) * 8;
+		//if (destx >= -256 && desty >= -256 && destx < 256 && desty < 256){	
+		texCtx.drawImage(tileset,sourcex,sourcey,8,8,destx,desty,8,8)
+		//}
+	}
+}
+
 var renderEntity = function (entity, x_offset, y_offset) {
 	
 	rx = rotatedX(entity.x, entity.y);// rotated x/y
@@ -111,21 +131,11 @@ var render = function () {
 		
 		mapCtx.translate(mapOrX, mapOrY);
 		mapCtx.rotate(renderAngle);
-	
-		data = map.layers[0].data
 		
-		for (var i = 0; i < data.length; i++){
-			tileVal = data[i] - 1
-		
-			sourcex = (tileVal % 16) * 8;
-			sourcey = Math.floor(tileVal / 16) * 8;
-			if (sourcex >= 0 && sourcey >= 0 && sourcex < mapCanvW && sourcey < mapCanvH){	
-			
-				destx = tra_x((i % map.width) * 8) - mapOrX;
-				desty = tra_y_o(Math.floor(i / map.width) * 8, mapOrY) - mapOrY;
-				mapCtx.drawImage(tileset,sourcex,sourcey,8,8,destx,desty,8*cam_zoom,8*cam_zoom)
-			}
-		}
+		// transfer map from texctx to mapctx here
+		dx = tra_x(0) - mapOrX;
+		dy = tra_y_o(0, mapOrY) - mapOrY;
+		mapCtx.drawImage(texCanvas, dx, dy, map.width*8*cam_zoom, map.height*8*cam_zoom)
 		
 		redrawFlag = false;
 		mapCtx.setTransform(1, 0, 0, 1, 0, 0);

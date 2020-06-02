@@ -50,7 +50,6 @@ results_names = [];
 var startClient = function(){
 	// Main canvas for rendering
 	canvas = document.querySelector("#Canvas");
-	//canvas.tabindex = 0;
 	canvas.style = "position: absolute; top: 0px; left: 0px; right: 0px; bottom: 0px; margin: auto;"
 	ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
@@ -58,6 +57,10 @@ var startClient = function(){
 	mapCanvas = document.getElementById("MapCanvas");
 	mapCtx = mapCanvas.getContext("2d");
 	mapCtx.imageSmoothingEnabled = false;
+	
+	texCanvas = document.getElementById("TexCanvas");
+	texCtx = texCanvas.getContext("2d");
+	texCtx.imageSmoothingEnabled = false;
 
 	addEventListener("keydown", function (e) { // when a key is pressed
 		keysDown[e.keyCode] = true;
@@ -257,6 +260,7 @@ var server_connect = function(){
 		
 		if (!map){ // If the player does not yet have the map, then here it is
 			map = serverMap
+			initMapTex(map);
 			clubs = serverClubs
 		}
 		currentPlayer = s_currentPlayer;
