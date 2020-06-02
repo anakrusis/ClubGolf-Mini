@@ -396,11 +396,9 @@ io.on('connection', function (socket) {
 		if (results_screen){
 			io.emit("courseFinish", results, currentMap, results_names);
 		}else{
-
-		}
-		
-		if (players.length == 1){
-			onTurnStart();
+			if (players.length == 1){
+				onTurnStart();
+			}
 		}
 	});
 	
