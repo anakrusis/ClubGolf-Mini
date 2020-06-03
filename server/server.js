@@ -24,7 +24,8 @@ var currentMap = -1;
 
 console.log("Starting server...\n") // init server
 
-var players = [];
+var players = {};
+var playerOrder = [];
 var currentPlayer = 0;
 
 var ballActive = false;
@@ -38,8 +39,9 @@ const BETWEEN_TURN_TIME = 56;
 const BETWEEN_COURSE_TIME = 600;
 
 var results_screen = false;
-var results = [];
-var results_names = []; // for now, results_names stores all the names per round
+var results = {};
+var results_names = {}; // results_names stores all the names of people who have completed a course,
+						// regardless of whether or not they're in the server ATM
 
 var getTileIndex = function(x, y){
 	x = Math.floor(x / 8); y = Math.floor(y / 8);
@@ -47,11 +49,29 @@ var getTileIndex = function(x, y){
 }
 
 var nextAvailablePlayer = function(){
-	for (i = 0; i < players.length; i++) {
-		index = (currentPlayer + i + 1) % players.length;
-		if (!players[index].done){
-			return index;
+
+	var allwent = true; // The first loop determines if all players have gone so far
+	for (index in players){ 
+		if (!players[index].went){
+			allwent = false;
+			break;
 		}
+	}
+	if (allwent){ // If all players have gone so far, then they are all going to be set back to false
+		for (index in players){
+			players[index].went = false;
+		}
+	}
+
+	for (index in players) { // Now we find the next player who hasn't gone yet
+		player = players[index];
+		//if (player.id != undefined){
+			if (!player.done && !player.went){
+				console.log(player.id);
+				player.went = true;
+				return player.id;
+			}
+		//}
 	}
 	return -1;
 }
@@ -73,10 +93,10 @@ rl.on('line', (line) => { // Command line parsing!
 	switch (firstArg) {
 		
 		case "/list":
-			for (i = 0; i < players.length; i++){
-				console.log ( players[i].name + " (ID: " + players[i].id + ")" )
+			for (index in players){
+				console.log ( players[index].name + " (ID: " + players[index].id + ")" )
 			}
-			if (players.length == 0){
+			if (Object.keys(players).length == 0){
 				console.log("No players online!")
 			}
 			console.log("");
@@ -128,63 +148,6 @@ var onMapLoad = function( path ) {
 		}
 	}
 }
-
-var onCourseStart = function() {
-	map = mapLoaded;
-	mapData = map.layers[0].data
-
-	// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
-	startTile = mapData.findIndex( function(element, index, array){ return element == TILE_TEE });
-	startX = (startTile % map.width) * 8;
-	startY = Math.floor(startTile / map.width) * 8;
-	console.log("Start pos.: " + startX + "," + startY);
-	holeTile = mapData.findIndex( function(element, index, array){ return element == TILE_HOLE });
-	holeX = (holeTile % map.width) * 8;
-	holeY = Math.floor(holeTile / map.width) * 8;
-	console.log("Hole pos.: " + holeX + "," + holeY + "\n");
-	
-	currentPlayer = 0;
-	ballActive = false;
-	ballReturn = false;
-	
-	map.trees = [];
-	
-	var flag = new Tree(holeX + 4, holeY + 4);
-	flag.collide = false; flag.texture = 3;
-	flag.width = 4; flag.height = 8;
-	map.trees.push( flag );
-
-	for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees on out of bounds or rough
-		treeX = Math.round ( Math.random() * map.width  * 8 );
-		treeY = Math.round ( Math.random() * map.height * 8 );
-		tree = new Tree (treeX, treeY) ;
-		tree.height = Math.random() * 20 + 12;
-		tree.width = tree.height;
-		
-		index = getTileIndex(treeX, treeY);
-		if (mapData[index] == TILE_OUT_OF_BOUNDS || mapData[index] == TILE_ROUGH){
-			map.trees.push( tree )
-		}
-		
-		ballActive = false;
-		betweenTurnTimer = -1;
-		results_screen = false;
-	}
-	
-	for (i = 0; i < players.length; i++){
-		initPlayer( players[i] );
-	}
-	
-	currentMap++;
-	
-	results_names = [];
-	results[currentMap] = [];
-	
-	io.emit("courseStart", players, map);
-}
-
-onMapLoad("map");
-onCourseStart();
 
 var onTurnFinish = function() {
 
@@ -241,6 +204,19 @@ var onTurnFinish = function() {
 	betweenTurnTimer = BETWEEN_TURN_TIME;
 }
 
+var onCourseEnd = function() {
+	console.log("\nAll players have finished the course!");
+	console.log("Here are the scores:");
+	
+	for (i in results){
+		console.log( results_names[i] + ": " + results[i][currentMap]);
+	}
+	console.log("");
+	
+	io.emit("courseFinish", results, currentMap, results_names);
+	results_screen = true;
+}
+
 var onTurnStart = function() {
 
 	if (ballReturn && players[currentPlayer]){ // action on ball lost, 1 stroke penalty and move back to old spot
@@ -262,7 +238,7 @@ var onTurnStart = function() {
 		io.emit("turnStart", currentPlayer);
 	
 	} else {
-		if (players.length == 0){ 
+		if (Object.keys(players).length == 0){ 
 			// unique handling for empty server? naaaa.... just waiting for someone to join
 		}else{
 			onCourseEnd();
@@ -272,18 +248,58 @@ var onTurnStart = function() {
 	betweenTurnTimer = -1;
 }
 
-var onCourseEnd = function() {
-	console.log("\nAll players have finished the course!");
-	console.log("Here are the scores:");
+var onCourseStart = function() {
+	map = mapLoaded;
+	mapData = map.layers[0].data
+	currentMap++;
 	
-	for (i = 0; i < players.length; i++){
-		console.log( players[i].name + ": " + players[i].shot);
+	console.log("Current map: " + currentMap);
+	// getting positions of stuff that your only supposed to have 1 per map (if you have 0 it will BE BAD)
+	startTile = mapData.findIndex( function(element, index, array){ return element == TILE_TEE });
+	startX = (startTile % map.width) * 8;
+	startY = Math.floor(startTile / map.width) * 8;
+	console.log("Start pos.: " + startX + "," + startY);
+	holeTile = mapData.findIndex( function(element, index, array){ return element == TILE_HOLE });
+	holeX = (holeTile % map.width) * 8;
+	holeY = Math.floor(holeTile / map.width) * 8;
+	console.log("Hole pos.: " + holeX + "," + holeY + "\n");
+	
+	ballActive = false;
+	ballReturn = false;
+	betweenTurnTimer = -1;
+	
+	map.trees = [];
+	
+	var flag = new Tree(holeX + 4, holeY + 4);
+	flag.collide = false; flag.texture = 3;
+	flag.width = 4; flag.height = 8;
+	map.trees.push( flag );
+
+	for (i = 0; i < config.max_trees; i++){ // Randomly spawns trees on out of bounds or rough
+		treeX = Math.round ( Math.random() * map.width  * 8 );
+		treeY = Math.round ( Math.random() * map.height * 8 );
+		tree = new Tree (treeX, treeY) ;
+		tree.height = Math.random() * 20 + 12;
+		tree.width = tree.height;
+		
+		index = getTileIndex(treeX, treeY);
+		if (mapData[index] == TILE_OUT_OF_BOUNDS || mapData[index] == TILE_ROUGH){
+			map.trees.push( tree )
+		}
 	}
-	console.log("");
 	
-	io.emit("courseFinish", results, currentMap, results_names);
-	results_screen = true;
+	for (i in players){
+		initPlayer( players[i] );
+	}
+	
+	results_screen = false;
+	
+	io.emit("courseStart", players, map);
+	onTurnStart();
 }
+
+onMapLoad("map");
+onCourseStart();
 
 var update = function () {
 	if (players[currentPlayer]){
@@ -324,10 +340,16 @@ var update = function () {
 			if (mapData[index] == TILE_HOLE){ // hole 
 			
 				if ( ball.velocity < 1 ){ // this allows the ball to skim over the hole if going too fast
+				
 					players[currentPlayer].done = true;
 					console.log(players[currentPlayer].name + " is done!");
 					ball.velocity = 0;
-					results[currentMap][currentPlayer] = players[currentPlayer].shot;
+					
+					if (results[currentPlayer] === undefined){
+						results[currentPlayer] = [];
+					}
+					
+					results[currentPlayer][currentMap] = players[currentPlayer].shot;
 					results_names[currentPlayer] = players[currentPlayer].name;
 				}
 			} else if (mapData[index] == TILE_BUNKER){
@@ -386,8 +408,8 @@ io.on('connection', function (socket) {
 	socket.on("playerJoinRequest", function (playerJoining) {
 		
 		initPlayer(playerJoining);
-		playerJoining.id = players.length;
-		players.push(playerJoining);
+		playerJoining.id = newID();
+		players[playerJoining.id] = playerJoining;
 		
 		io.emit("playerJoin", playerJoining, players, map, clubs.clubs, currentPlayer);
 		io.emit("playerUpdate", playerJoining, playerJoining.id);
@@ -397,7 +419,7 @@ io.on('connection', function (socket) {
 		if (results_screen){
 			io.emit("courseFinish", results, currentMap, results_names);
 		}else{
-			if (players.length == 1){
+			if (Object.keys(players).length == 1){
 				onTurnStart();
 			}
 		}
@@ -414,7 +436,7 @@ io.on('connection', function (socket) {
 	
 	socket.on("disconnect", function () {
 
-		playerLeaving = getPlayerFromSocket(socket)
+		playerLeaving = getPlayerFromSocket(socket);
 		 
 		if (playerLeaving != -1){
 			onPlayerLeave(playerLeaving);
@@ -424,7 +446,7 @@ io.on('connection', function (socket) {
 });
 
 var getPlayerFromSocket = function(socket_in){
-	for (i=0; i<players.length; i++){
+	for (i in players){
 		if (socket_in.id == players[i].socket) {
 			return players[i];
 		}
@@ -442,25 +464,24 @@ var initPlayer = function(p){
 	p.y = startY;
 		
 	p.done = false;
+	p.went = false;
 	p.shot = 1;
 	p.club = 0;
 }
 
 var onPlayerLeave = function(p){
-
-	console.log( p.name + " has left the server (ID: " + p.id + ")")
+	var ind = p.id;
+	console.log( p.name + " has left the server (ID: " + ind + ")")
+	delete players[p.id];
 	
-	players.splice(p.id, 1)
-	for (i = p.id; i < players.length; i++){
-		players[i].id--;
-	}
-	io.emit("playerLeave", p.id, players);
+	io.emit("playerLeave", ind, players);
 			
-	if (currentPlayer >= p.id){
-		currentPlayer--;
-	}		
-	if (p.id == currentPlayer + 1 && !results_screen){
+	if (ind == currentPlayer && !results_screen){
 		onTurnStart();
 	}
+}
+
+var newID = function(){
+	return Math.round(Math.random() * 100000);
 }
 

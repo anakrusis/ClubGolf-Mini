@@ -161,7 +161,7 @@ var render = function () {
 	ctx.lineTo(320, horizon_scanline + 100);
 	ctx.stroke();
 
-	for (var i = 0; i < players.length; i++){
+	for (i in players){
 	
 		if (!players[i].done){
 			entityRenderList.push(players[i]);
@@ -250,11 +250,11 @@ var render = function () {
 		ctx.textAlign = "center";
 		ctx.fillText("Results", 320, 140);
 		
-		for (i = 0; i < results[currentMap].length; i++){
+/* 		for (i = 0; i < results[currentMap].length; i++){
 			score = results[currentMap][i] - map.par
 			if (score > 0){ score = "+" + score }
 			ctx.fillText(results_names[i] + ": " + score, 320, 200 + i * 68);
-		}
+		} */
 		
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.strokeText("Results", 320, 140);

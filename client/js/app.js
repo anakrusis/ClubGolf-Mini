@@ -24,7 +24,8 @@ class Player {
 		this.ball = new Ball();
 		this.club = 0;
 		this.shot = 1;
-		this.done = false;
+		this.done = false; // is finished with the entire course
+		this.went = false; // has gone already this turn
 		
 		this.texture = 0;
 		this.height = 8;

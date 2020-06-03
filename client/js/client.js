@@ -35,7 +35,7 @@ var turnStatus; var holeStatus;
 var powerMeter = -1;
 var powerMeterCoeff;
 
-players = [];
+players = {};
 playerID = -1 // Your player ID
 var currentPlayer; // The current player who is hitting the ball right now
 
@@ -79,6 +79,10 @@ var startClient = function(){
 	}, false);
 
 	var update = function (modifier) {
+		if (players[playerID]){
+			oldclub = players[playerID].club;
+		}
+		
 		if (87 in keysDown) { // up
 			if (cam_unlock){
 				cam_y += 4 * Math.sin(cam_dir - Math.PI / 2);
@@ -103,6 +107,10 @@ var startClient = function(){
 				}
 			}
 		}
+		if (players[playerID]){
+			players[playerID].club = oldclub;
+		}
+		
 		t = 4;
 		
 		if (65 in keysDown) { // left
@@ -240,7 +248,7 @@ var server_connect = function(){
 	var player = new Player() // player is just a temp variable, the properly synced one is players[playerID]
 	var name = settings.opts.playerName;
 	player.name = name;
-	players = []
+	players = {};
 	
 	if (socket){
 		socket.disconnect();
@@ -251,6 +259,7 @@ var server_connect = function(){
 	socket.on("playerJoin", function(playerJoining, serverPlayerList, serverMap, serverClubs, s_currentPlayer){
 		console.log(playerJoining.name + " has joined the server")
 		players = serverPlayerList
+		//console.log(serverPlayerList);
 		
 		if (playerID == -1) {  // Handler for uninitialized player (client-side)
 			playerID = playerJoining.id
@@ -273,12 +282,6 @@ var server_connect = function(){
 	
 	socket.on("playerLeave", function(playerLeaving, serverPlayerList){
 	
-		if (playerLeaving < playerID) {
-			playerID--;
-		}
-		if (playerLeaving == playerID) {
-			//socket.disconnect();
-		}
 		console.log(players[playerLeaving].name + " has left the server")
 		players = serverPlayerList
 	});
@@ -309,6 +312,8 @@ var server_connect = function(){
 			socket.disconnect();
 			map = undefined;
 			ball_unlock = false;
+			playerID = -1;
+			players = {};
 		});
 		
 		loadSong(song_MAIN);
