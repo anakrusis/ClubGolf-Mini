@@ -1,10 +1,10 @@
-var flat_factor = 16;
-var horizon_scanline = 224;
+var flat_factor = 8;
+var horizon_scanline = 192;
 var scanline_size = 2;
 var renderAngle;
 
 var mapOrX = 320; // map canvas origin x/y
-var mapOrY = 520;
+var mapOrY = 480;
 var mapCanvW = 640;
 var mapCanvH = 640;
 
@@ -36,8 +36,8 @@ var scaledX = function (x, y){
 
 	line = (canvH * ry) / (-ry + canvH) // This is the algebraic inverse of the map drawing code
 	scale = 1 + (line / canvH)
-	//return ((rx - mapOrX ) * scale * (canvW / mapCanvW) + canvOrX)
-	return (rx - mapOrX) * scale + canvOrX
+	return ((rx - mapOrX ) * scale * (canvW / mapCanvW) + canvOrX)
+	//return (rx - mapOrX) * scale + canvOrX
 }
 
 var scaledY = function (x, y){
@@ -116,7 +116,7 @@ var renderEntity = function (entity, x_offset, y_offset) {
 var render = function () {
 
 	//flat_factor = 4.8 * cam_zoom + 9.6; 
-	flat_factor = 12;
+	//flat_factor = 12;
 	
 	renderAngle = 2 * Math.PI - cam_dir - Math.PI / 2
 
@@ -154,9 +154,9 @@ var render = function () {
 		
 		mapCanvW, 1, // source width height 
 		
-		canvOrX - (mapOrX * scale), horizon_scanline + i / flat_factor, // destination x y
+		canvOrX - (canvOrX * scale), horizon_scanline + i / flat_factor, // destination x y
 
-		mapCanvW * scale, scanline_size); // destination width height
+		canvW * scale, scanline_size); // destination width height
 
 	//	ctx.drawImage(mapCanvas, 0, i, 640, 1, 0, i, 640, 1); // top down plain scanline render
 	}
