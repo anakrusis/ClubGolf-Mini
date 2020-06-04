@@ -50,11 +50,13 @@ var getTileIndex = function(x, y){
 
 var nextAvailablePlayer = function(){
 
-	var allwent = true; // The first loop determines if all players have gone so far
-	for (index in players){ 
-		if (!players[index].went){
-			allwent = false;
-			break;
+	var allwent = true; // The first loop determines if all players (who are not done) have gone so far
+	for (index in players){
+		if (!players[index].done){
+			if (!players[index].went){
+				allwent = false;
+				break;
+			}
 		}
 	}
 	if (allwent){ // If all players have gone so far, then they are all going to be set back to false
@@ -349,7 +351,7 @@ var update = function () {
 						results[currentPlayer] = [];
 					}
 					
-					results[currentPlayer][currentMap] = players[currentPlayer].shot;
+					results[currentPlayer][currentMap] = players[currentPlayer].shot - map.par;
 					results_names[currentPlayer] = players[currentPlayer].name;
 				}
 			} else if (mapData[index] == TILE_BUNKER){

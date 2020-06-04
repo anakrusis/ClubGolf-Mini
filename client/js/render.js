@@ -1,30 +1,31 @@
-var flat_factor = 12;
+var flat_factor = 16;
 var horizon_scanline = 224;
 var scanline_size = 2;
 var renderAngle;
 
 var mapOrX = 320; // map canvas origin x/y
 var mapOrY = 520;
-var canvOrX = 320; // main canvas origin/x/y
-var canvOrY = 320;
-var canvW = 640;
-var canvH = 640;
 var mapCanvW = 640;
 var mapCanvH = 640;
+
+var canvOrX = 500; // main canvas origin/x/y
+var canvOrY = 320;
+var canvW = 1000;
+var canvH = 640;
 
 var METER_SCALE = 4;
 
 var redrawFlag = true; // this is a flag that gets set off whenever there is a change in perspective requiring a map redraw
 
 var rotatedX = function(x, y){
-	tx = tra_x( x ) - mapOrX;
+	tx = tra_x_o( x, mapOrX ) - mapOrX;
 	ty = tra_y_o( y, mapOrY ) - mapOrY;
 	return rot_x(renderAngle, tx, ty) + mapOrX; 
 	
 }
 
 var rotatedY = function(x, y){
-	tx = tra_x( x ) - mapOrX;
+	tx = tra_x_o( x, mapOrX ) - mapOrX;
 	ty = tra_y_o( y, mapOrY ) - mapOrY;
 	return rot_y(renderAngle, tx, ty) + mapOrY;
 }
@@ -35,7 +36,8 @@ var scaledX = function (x, y){
 
 	line = (canvH * ry) / (-ry + canvH) // This is the algebraic inverse of the map drawing code
 	scale = 1 + (line / canvH)
-	return (rx - canvOrX) * scale + canvOrX
+	//return ((rx - mapOrX ) * scale * (canvW / mapCanvW) + canvOrX)
+	return (rx - mapOrX) * scale + canvOrX
 }
 
 var scaledY = function (x, y){
@@ -113,6 +115,9 @@ var renderEntity = function (entity, x_offset, y_offset) {
 
 var render = function () {
 
+	//flat_factor = 4.8 * cam_zoom + 9.6; 
+	flat_factor = 12;
+	
 	renderAngle = 2 * Math.PI - cam_dir - Math.PI / 2
 
 	// canvas clear and initial translation
@@ -133,7 +138,7 @@ var render = function () {
 		mapCtx.rotate(renderAngle);
 		
 		// transfer map from texctx to mapctx here
-		dx = tra_x(0) - mapOrX;
+		dx = tra_x_o(0, mapOrX) - mapOrX;
 		dy = tra_y_o(0, mapOrY) - mapOrY;
 		mapCtx.drawImage(texCanvas, dx, dy, map.width*8*cam_zoom, map.height*8*cam_zoom)
 		
@@ -147,19 +152,14 @@ var render = function () {
 		sourceY = Math.round(i/scale);
 		ctx.drawImage(mapCanvas, 0, sourceY, // source x y
 		
-		640, 1, // source width height 
+		mapCanvW, 1, // source width height 
 		
-		320 - (320 * scale) , horizon_scanline + i / flat_factor, // destination x y
+		canvOrX - (mapOrX * scale), horizon_scanline + i / flat_factor, // destination x y
 
-		640 * scale, scanline_size); // destination width height
+		mapCanvW * scale, scanline_size); // destination width height
 
 	//	ctx.drawImage(mapCanvas, 0, i, 640, 1, 0, i, 640, 1); // top down plain scanline render
 	}
-	
-	ctx.beginPath(); // crosshair
-	ctx.moveTo(320, 450);
-	ctx.lineTo(320, horizon_scanline + 100);
-	ctx.stroke();
 
 	for (i in players){
 	
@@ -179,6 +179,13 @@ var render = function () {
 		renderEntity( entityRenderList[i], 0, 0);
 	}
 	
+	if (map){
+		// MINIMAP
+		var minimapWidth = 256;
+		var minimapHeight = 256 * (map.height / map.width)
+		ctx.drawImage(texCanvas, canvW - minimapWidth, canvH - minimapHeight, minimapWidth, minimapHeight)
+	}
+	
 	ctx.font = "24px Verdana";
 	ctx.fillStyle = "#ffffff";
 	ctx.textAlign = "left";
@@ -189,7 +196,8 @@ var render = function () {
 	}
 
 	ctx.fillText("Players: ",10,96); 
-	for (var i = 0; i < players.length; i++){
+	var count = 0;
+	for (i in players){
 	
 		if (i == currentPlayer){
 			var seqond = new Date().getTime();
@@ -201,11 +209,12 @@ var render = function () {
 		if (i == playerID){
 			playerstr += " ⬅You" // black arrow
 		}
-		ctx.fillText(playerstr,10,128 + (i*32) );
+		ctx.fillText(playerstr,10,128 + (count*32) );
+		count++;
 	}
 	ctx.fillStyle = "#ffffff"
 	if (map){
-		ctx.fillText("Par: " + map.par, 552, 32);
+		ctx.fillText("Par: " + map.par, canvW - 88, 32);
 	}
 	
 	if (clubs && players[currentPlayer]){ // clubs
@@ -236,9 +245,9 @@ var render = function () {
 				outStr = "+" + holeStatus;
 			}
 		}
-		ctx.fillText(outStr, 320, 320);
+		ctx.fillText(outStr, canvOrX, canvOrY);
 		ctx.fillStyle = "rgba(0, 0, 0, " + betweenTurnTimer/BETWEEN_TURN_TIME + ")";
-		ctx.strokeText(outStr, 320, 320);
+		ctx.strokeText(outStr, canvOrX, canvOrY);
 	}
 	
 	if (results_screen && map){
@@ -248,16 +257,27 @@ var render = function () {
 		ctx.fillStyle = "rgb(255, 255, 255)";
 		ctx.font = "bold 54px Verdana";
 		ctx.textAlign = "center";
-		ctx.fillText("Results", 320, 140);
+		ctx.fillText("Results", canvOrX, 140);
+		ctx.font = "20px Verdana";
 		
-/* 		for (i = 0; i < results[currentMap].length; i++){
-			score = results[currentMap][i] - map.par
-			if (score > 0){ score = "+" + score }
-			ctx.fillText(results_names[i] + ": " + score, 320, 200 + i * 68);
-		} */
+		var hite = 200;
+		for (key in results){
+			ctx.fillText(results_names[key] + ": ", 100, hite);
+			for (i = -6; i <= 0; i++){
+				score = results[key][currentMap + i];
+				if (score === undefined || score === null){
+					score = "--";
+				}else{
+					if (score > 0){ score = "+" + score }
+				}
+				ctx.fillText(score, 550 + 64*i, hite);
+			}
+			hite += 40;
+		}
 		
 		ctx.fillStyle = "rgb(0, 0, 0)";
-		ctx.strokeText("Results", 320, 140);
+		ctx.font = "bold 54px Verdana";
+		ctx.strokeText("Results", canvOrX, 140);
 	}
 	
 	if (socket){
@@ -265,4 +285,5 @@ var render = function () {
 			ctx.fillText("Can't connect to server!", 200, 320)
 		}
 	}
+	//ctx.fillText(flat_factor, 200, 320)
 };

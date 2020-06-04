@@ -151,11 +151,13 @@ var startClient = function(){
 			cam_dir += Math.PI / 32;
 		}
 		if (104 in keysDown){ // numpad 8
-			cam_zoom+=0.1
+			flat_factor += (2/10);
 		}
 		if (98 in keysDown){ // numpad 2
-			cam_zoom-=0.1
+			flat_factor -= (2/10);
 		}
+		flat_factor = Math.max(6, flat_factor);
+		flat_factor = Math.min(32, flat_factor);
 		
 		if (32 in keysDown){ // space
 			
@@ -316,6 +318,7 @@ var server_connect = function(){
 			players = {};
 		});
 		
+		results_screen = false;
 		loadSong(song_MAIN);
 	});
 	
