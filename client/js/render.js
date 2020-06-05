@@ -1,11 +1,11 @@
 var flat_factor = 8;
-var horizon_scanline = 192;
+var horizon_scanline = 128;
 var scanline_size = 2;
 var renderAngle;
 
-var mapOrX = 320; // map canvas origin x/y
-var mapOrY = 480;
-var mapCanvW = 640;
+var mapOrX = 500; // map canvas origin x/y
+var mapOrY = 520;
+var mapCanvW = 1000;
 var mapCanvH = 640;
 
 var canvOrX = 500; // main canvas origin/x/y
@@ -154,9 +154,9 @@ var render = function () {
 		
 		mapCanvW, 1, // source width height 
 		
-		canvOrX - (canvOrX * scale), horizon_scanline + i / flat_factor, // destination x y
+		canvOrX - (mapOrX * scale), horizon_scanline + i / flat_factor, // destination x y
 
-		canvW * scale, scanline_size); // destination width height
+		mapCanvW * scale, scanline_size); // destination width height
 
 	//	ctx.drawImage(mapCanvas, 0, i, 640, 1, 0, i, 640, 1); // top down plain scanline render
 	}
@@ -184,6 +184,9 @@ var render = function () {
 		var minimapWidth = 256;
 		var minimapHeight = 256 * (map.height / map.width)
 		ctx.drawImage(texCanvas, canvW - minimapWidth, canvH - minimapHeight, minimapWidth, minimapHeight)
+		
+		ctx.lineWidth = 2;
+		ctx.strokeRect(canvW - minimapWidth, canvH - minimapHeight, minimapWidth, minimapHeight);
 	}
 	
 	ctx.font = "24px Verdana";

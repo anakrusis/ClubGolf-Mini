@@ -300,9 +300,6 @@ var onCourseStart = function() {
 	onTurnStart();
 }
 
-onMapLoad("map");
-onCourseStart();
-
 var update = function () {
 	if (players[currentPlayer]){
 		ball = players[currentPlayer].ball;
@@ -380,6 +377,9 @@ var update = function () {
 	}
 
 }
+
+onMapLoad("map");
+onCourseStart();
 
 setInterval(()=> {update()}, 50);
 
